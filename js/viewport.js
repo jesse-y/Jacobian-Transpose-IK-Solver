@@ -1,6 +1,6 @@
 console.log('viewport.js loaded');
 
-var camera, scene, renderer;
+var camera, scene, renderer, controls;
 
 init();
 render();
@@ -38,15 +38,56 @@ function init() {
 	vport_div.appendChild( renderer.domElement );
 
 	//bind input controller
-	window.input.bind('alt', controller);
+	controls = new Controller(camera);
+	document.addEventListener('mousemove', controls.update);
 
 	//handle resizing
 	window.addEventListener( 'resize', onWindowResize, false );
+
+	var loc = new THREE.Object3D();
+	loc.add(new THREE.AxisHelper(10));
+	scene.add(loc);
 }
 
-function controller() {
-	console.log('controller successfully called');
-	render();
+function Controller(camera) {
+	var x, y, z;
+	var theta, phi, r;
+
+	r = camera.position.distanceTo(new THREE.Vector3());
+	theta = Math.acos(camera.position.z/r);
+	phi = Math.atan(camera.position.y/camera.position.x);
+
+	this.update = function(e) {
+		if (window.input.lclick()) {
+			var click_pos = window.input.lclick_pos();
+			var curr_pos = window.input.m_pos();
+
+			var xdiff = -(curr_pos[0] - click_pos[0])*0.1;
+			var ydiff = (curr_pos[1] - click_pos[1])*0.1;
+
+			console.log(xdiff, ydiff);
+
+			if (xdiff == 0 && ydiff == 0) return;
+
+			theta += xdiff;
+			phi += ydiff;
+
+			phi = Math.min( 180, Math.max( 0, phi ) );
+
+			camera.position.x = r * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+			camera.position.y = r * Math.sin( phi * Math.PI / 360 );
+			camera.position.z = r * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 );
+			camera.updateMatrix();
+
+			//camera.position.set( x, y, z );
+			camera.lookAt(new THREE.Vector3());
+			//camera.updateProjectionMatrix();
+
+			render();
+		} else {
+			return
+		}
+	}
 }
 
 function render() {

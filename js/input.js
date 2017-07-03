@@ -10,9 +10,9 @@
 		x: 0,
 		y: 0,
 		btn_num: {
-			0: false,
-			1: false,
-			2: false
+			0: [false, 0, 0],
+			1: [false, 0, 0],
+			2: [false, 0, 0]
 		}
 	};
 	var bound_func = {};
@@ -49,11 +49,11 @@
 			}
 		}
 
-		console.log('changed('+code+') '+key+' to '+status);
+		//console.log('changed('+code+') '+key+' to '+status);
 		keys[key] = status;
 
 		if (bound_func.hasOwnProperty(key) && status) {
-			console.log('fired function for key '+key);
+			//console.log('fired function for key '+key);
 			event.preventDefault();
 			bound_func[key]();
 		}
@@ -61,7 +61,7 @@
 
 	function setMouse(event, status) {
 		var btn = event.button;
-		mouse.btn_num[btn] = status;
+		mouse.btn_num[btn] = [status, event.clientX, event.clientY];
 		//console.log('mouse button '+btn+' is '+status);
 	}
 
@@ -95,20 +95,26 @@
 		all_keys: function() {
 			return keys;
 		},
-		mouseX: function() {
-			return mouse.x;
-		},
-		mouseY: function() {
-			return mouse.y;
+		m_pos: function() {
+			return [mouse.x, mouse.y];
 		},
 		lclick: function() {
-			return mouse.btn_num[l_btn];
+			return mouse.btn_num[l_btn][0];
 		},
 		mclick: function() {
-			return mouse.btn_num[m_btn];
+			return mouse.btn_num[m_btn][0];
 		},
 		rclick: function() {
-			return mouse.btn_num[r_btn];
+			return mouse.btn_num[r_btn][0];
+		},
+		lclick_pos: function() {
+			return mouse.btn_num[l_btn].slice(1);
+		},
+		mclick_pos: function() {
+			return mouse.btn_num[m_btn].slice(1);
+		},
+		rclick_pos: function() {
+			return mouse.btn_num[r_btn].slice(1);
 		}
 	};
 })();
