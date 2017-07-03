@@ -15,6 +15,7 @@
 			2: false
 		}
 	};
+	var bound_func = {};
 
 	function setKey(event, status) {
 		var code = event.keyCode;
@@ -24,18 +25,38 @@
 			//keys from 0-9 and a-z
 			key = String.fromCharCode(code);
 		} else {
-			key = code;
+			switch(code) {
+				case 16:
+					key = 'SHIFT'; break;
+				case 17:
+					key = 'CTRL'; break;
+				case 18:
+					key = 'ALT'; break;
+				case 27:
+					key = 'ESCAPE'; break;
+				case 32:
+					key = 'SPACE'; break;
+				case 37:
+					key = 'LEFT'; break;
+				case 38:
+					key = 'UP'; break;
+				case 39:
+					key = 'RIGHT'; break;
+				case 40:
+					key = 'DOWN'; break;
+				default:
+					key = code; break;
+			}
 		}
 
-		/*
-		switch(code) {
-			default:
-				key = String.fromCharCode(code); break;
-		}
-		*/
-
-		//console.log('changed('+code+') '+key+' to '+status);
+		console.log('changed('+code+') '+key+' to '+status);
 		keys[key] = status;
+
+		if (bound_func.hasOwnProperty(key) && status) {
+			console.log('fired function for key '+key);
+			event.preventDefault();
+			bound_func[key]();
+		}
 	}
 
 	function setMouse(event, status) {
@@ -67,6 +88,9 @@
 	window.input = {
 		is_down: function(key) {
 			return keys[key.toUpperCase()];
+		},
+		bind: function(key, func) {
+			bound_func[key.toUpperCase()] = func;
 		},
 		all_keys: function() {
 			return keys;
