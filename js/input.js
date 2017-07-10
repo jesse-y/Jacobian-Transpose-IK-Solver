@@ -6,6 +6,13 @@ function SceneCamera(camera, render_func) {
 	var r_btn = 2;
 	const default_btn_state = [false, 0, 0, 0, 0];
 
+	//the camera controller consists of a sphere defined around a target.
+	//the camera sits along the surface of the sphere, looking at the target.
+	//theta is the azimuth (horizontal angle) of the camera.
+	//phi is the altitude (vertical angle) of the camera. phi is capped between
+	//-pi/2 and pi/2.
+	//radius r defines how physically close the camera is to the target.
+
 	var theta, phi, r;
 	var target = new THREE.Object3D();
 	var prev_target = target.clone();
@@ -53,6 +60,10 @@ function SceneCamera(camera, render_func) {
 		}
 	}
 
+	//move the target forward in space along the Z axis. note there is subtle
+	//difference between moving the target of the camera, and simply moving the camera
+	//closer to the target. dolly_camera moves the target, keeping the camera at r distance
+	//away from the target.
 	function dolly_camera(btn_state, event) {
 		var click_x = btn_state[1];
 		var click_y = btn_state[2];
@@ -72,6 +83,9 @@ function SceneCamera(camera, render_func) {
 		render_func();
 	}
 
+	//move the camera along the X and Y axes of the target. note the target is looking
+	//at the camera, so its X and Y axes form a plane that is parallel to the camera's
+	//XY plane.
 	function pan_camera(btn_state, event) {
 		var click_x = btn_state[1];
 		var click_y = btn_state[2];
@@ -88,6 +102,7 @@ function SceneCamera(camera, render_func) {
 		render_func();
 	}
 
+	//orbit the camera around the target.
 	function orbit_camera(btn_state, event) {
 		var click_x = btn_state[1];
 		var click_y = btn_state[2];
@@ -97,6 +112,9 @@ function SceneCamera(camera, render_func) {
 		theta = - ((event.clientX - click_x) * 0.5) + click_theta;
 		phi = ((event.clientY - click_y) * 0.5) + click_phi;
 
+		//clamp values of theta prevent the camera jumping between extremes.
+		//clamp phi so that the camera cannot become inverted along its WORLD UP
+		//axis during extreme orbiting.
 		if (theta < -Math.PI * 360) theta += 2*Math.PI * 360;
 		if (theta > Math.PI * 360) theta -= 2*Math.PI * 360;
 		if (phi > 180) phi = 180;
@@ -106,6 +124,8 @@ function SceneCamera(camera, render_func) {
 		render_func();
 	}
 
+	//zoom the camera by reducing the radius of the sphere upon which the camera sits.
+	//note that the target does not move during zooming, compared to dollying.
 	function zoom_camera(event) {
 		if (event.deltaY) {
 			if (event.deltaY > 0) {
@@ -120,6 +140,10 @@ function SceneCamera(camera, render_func) {
 		}
 	}
 
+	//based on a target position, describe a sphere around the point, and then place the camera
+	//on a point along its surface based on the camera's azimuth and altitude.
+	//preserve the parallel property of the XY plane of the target and camera by having them
+	//look at each other.
 	function set_camera_pos() {
 		camera.position.x = (r * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 )) + target.position.x;
 		camera.position.y = (r * Math.sin( phi * Math.PI / 360 )) + target.position.y;
@@ -130,6 +154,7 @@ function SceneCamera(camera, render_func) {
 		target.lookAt(camera.position);
 	}
 
+	//set the view to default values
 	function reset_view() {
 		target = new THREE.Object3D();
 		prev_target = target.clone();
