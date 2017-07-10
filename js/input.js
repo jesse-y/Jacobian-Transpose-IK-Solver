@@ -7,10 +7,9 @@ function SceneCamera(camera, render_func) {
 	const default_btn_state = [false, 0, 0, 0, 0];
 
 	var theta, phi, r;
-	var target;
+	var target = new THREE.Object3D();
+	var prev_target = target.clone();
 	var mouse = {};
-	var prev_camera;
-	var prev_target;
 
 	r = 150;
 	theta = 70;
@@ -19,9 +18,6 @@ function SceneCamera(camera, render_func) {
 	mouse[l_btn] = default_btn_state;
 	mouse[m_btn] = default_btn_state;
 	mouse[r_btn] = default_btn_state;
-
-	target = new THREE.Object3D();
-	prev_target = target.clone();
 
 	function mouse_down(event) {
 		event.preventDefault();
@@ -44,13 +40,36 @@ function SceneCamera(camera, render_func) {
 		event.preventDefault();
 		var btn = event.button;
 
+		//if (!window.input.is_down('ALT')) return;
+
 		if (mouse[btn][0]) {
 			if (btn == l_btn) {
 				orbit_camera(mouse[btn], event);
 			} else if (btn == m_btn) {
 				pan_camera(mouse[btn], event);
+			} else if (btn == r_btn) {
+				dolly_camera(mouse[btn], event);
 			}
 		}
+	}
+
+	function dolly_camera(btn_state, event) {
+		var click_x = btn_state[1];
+		var click_y = btn_state[2];
+
+		var offset_x = -((event.clientX - click_x));
+		var offset_y = ((event.clientY - click_y));
+
+		var distance = Math.sqrt(offset_x**2 + offset_y**2) * 0.5;
+
+		if (offset_x < 0) distance *= -1;
+
+		target.position.copy(prev_target.position);
+
+		target.translateZ(distance);
+
+		set_camera_pos();
+		render_func();
 	}
 
 	function pan_camera(btn_state, event) {
@@ -87,22 +106,59 @@ function SceneCamera(camera, render_func) {
 		render_func();
 	}
 
+	function zoom_camera(event) {
+		if (event.deltaY) {
+			if (event.deltaY > 0) {
+				r += 10;
+			} else {
+				r -= 10;
+			}
+
+			if (r < 0) r = 0;
+			set_camera_pos();
+			render_func();
+		}
+	}
+
 	function set_camera_pos() {
 		camera.position.x = (r * Math.sin( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 )) + target.position.x;
 		camera.position.y = (r * Math.sin( phi * Math.PI / 360 )) + target.position.y;
 		camera.position.z = (r * Math.cos( theta * Math.PI / 360 ) * Math.cos( phi * Math.PI / 360 )) + target.position.z;
 		camera.updateMatrix();
 
-		console.log(theta, phi, camera.position);
-
 		camera.lookAt(target.position);
 		target.lookAt(camera.position);
 	}
 
+	function reset_view() {
+		target = new THREE.Object3D();
+		prev_target = target.clone();
+
+		r = 150;
+		theta = 70;
+		phi = 70;
+
+		mouse[l_btn] = default_btn_state;
+		mouse[m_btn] = default_btn_state;
+		mouse[r_btn] = default_btn_state;
+
+		set_camera_pos();
+		render_func();
+	}
+
 	this.init = function() {
-		document.addEventListener('mousemove', mouse_move, false );
-		document.addEventListener( 'mousedown', mouse_down, false );
-		document.addEventListener( 'mouseup', mouse_up, false );
+		var viewport_elem = document.getElementById('viewport').childNodes[0];
+		viewport_elem.addEventListener('mousemove', mouse_move, false );
+		viewport_elem.addEventListener('mousedown', mouse_down, false );
+		viewport_elem.addEventListener('mouseup', mouse_up, false );
+		viewport_elem.addEventListener('wheel', zoom_camera, false);
+
+		viewport_elem.addEventListener('contextmenu', function(event) {
+			event.preventDefault();
+			return false;
+		}, false);
+
+		window.input.bind('F', reset_view);
 
 		set_camera_pos();
 		render_func();
@@ -111,23 +167,8 @@ function SceneCamera(camera, render_func) {
 	this.init();
 }
 
-/*(function () {
-	//button code for mouse clicks. 
-	//IE8 returns 1, 4, 2 for left, middle and right buttons respectively.
-	var l_btn = 0;
-	var m_btn = 1;
-	var r_btn = 2;
-
+(function () {
 	var keys = {};
-	var mouse = {
-		x: 0,
-		y: 0,
-		btn_num: {
-			0: [false, 0, 0],
-			1: [false, 0, 0],
-			2: [false, 0, 0]
-		}
-	};
 	var bound_func = {};
 
 	function setKey(event, status) {
@@ -172,12 +213,6 @@ function SceneCamera(camera, render_func) {
 		}
 	}
 
-	function setMouse(event, status) {
-		var btn = event.button;
-		mouse.btn_num[btn] = [status, event.clientX, event.clientY];
-		//console.log('mouse button '+btn+' is '+status);
-	}
-
 	document.addEventListener('keydown', function(e) {
 		setKey(e, true);
 	})
@@ -186,16 +221,6 @@ function SceneCamera(camera, render_func) {
 	})
 	document.addEventListener('blur', function () {
 		keys= {};
-	})
-	document.addEventListener('mousemove', function(e) {
-		mouse.x = e.clientX;
-		mouse.y = e.clientY;
-	})
-	document.addEventListener('mousedown', function(e) {
-		setMouse(e, true);
-	})
-	document.addEventListener('mouseup', function(e) {
-		setMouse(e, false);
 	})
 
 	window.input = {
@@ -208,27 +233,5 @@ function SceneCamera(camera, render_func) {
 		all_keys: function() {
 			return keys;
 		},
-		m_pos: function() {
-			return [mouse.x, mouse.y];
-		},
-		lclick: function() {
-			return mouse.btn_num[l_btn][0];
-		},
-		mclick: function() {
-			return mouse.btn_num[m_btn][0];
-		},
-		rclick: function() {
-			return mouse.btn_num[r_btn][0];
-		},
-		lclick_pos: function() {
-			return mouse.btn_num[l_btn].slice(1);
-		},
-		mclick_pos: function() {
-			return mouse.btn_num[m_btn].slice(1);
-		},
-		rclick_pos: function() {
-			return mouse.btn_num[r_btn].slice(1);
-		}
 	};
 })();
-*/

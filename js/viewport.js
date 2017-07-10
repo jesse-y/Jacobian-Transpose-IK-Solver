@@ -2,6 +2,10 @@ console.log('viewport.js loaded');
 
 var camera, scene, renderer, controls;
 
+//default variables
+var width = 1600;
+var height = 900;
+
 init();
 render();
 
@@ -11,7 +15,7 @@ function init() {
 	document.body.appendChild(vport_div);
 
 	//setup camera
-	camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 1000);
+	camera = new THREE.PerspectiveCamera(45, width/height, 1, 1000);
 
 	//setup scene
 	scene = new THREE.Scene();
@@ -32,7 +36,7 @@ function init() {
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
 	renderer.setClearColor( 0xf0f0f0 );
 	renderer.setPixelRatio( window.devicePixelRatio );
-	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setSize( width, height );
 	vport_div.appendChild( renderer.domElement );
 
 	//bind input controller
@@ -53,9 +57,9 @@ function render() {
 }
 
 function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.aspect = width / height;
 	camera.updateProjectionMatrix();
-	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setSize( width, height );
 
 	render();
 }
