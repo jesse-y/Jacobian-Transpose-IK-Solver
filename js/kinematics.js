@@ -60,9 +60,9 @@ function joint (link_length, link_twist, link_offset, joint_angle) {
 
 	this.apply_parameters = function() {
 		var transform = new THREE.Matrix4();
-		transform.multiply(a);
-		transform.multiply(d);
 		transform.multiply(alpha);
+		transform.multiply(d);
+		transform.multiply(a);
 		transform.multiply(theta);
 
 		scene_object.matrix = transform.clone();
