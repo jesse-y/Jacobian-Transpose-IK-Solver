@@ -183,7 +183,7 @@ function SceneCamera(camera, render_func) {
 			return false;
 		}, false);
 
-		window.input.bind('F', reset_view);
+		window.input.bind('T', reset_view);
 
 		set_camera_pos();
 		render_func();

@@ -6,6 +6,8 @@ var camera, scene, renderer, controls;
 var width = 1600;
 var height = 900;
 
+var a = 0, d = 0, alpha = 0, theta = 0;
+
 init();
 render();
 
@@ -15,7 +17,7 @@ function init() {
 	document.body.appendChild(vport_div);
 
 	//setup camera
-	camera = new THREE.PerspectiveCamera(45, width/height, 1, 1000);
+	camera = new THREE.PerspectiveCamera(45, window.innerWidth/height, 1, 1000);
 
 	//setup scene
 	scene = new THREE.Scene();
@@ -36,7 +38,7 @@ function init() {
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
 	renderer.setClearColor( 0xf0f0f0 );
 	renderer.setPixelRatio( window.devicePixelRatio );
-	renderer.setSize( width, height );
+	renderer.setSize( window.innerWidth, height );
 	vport_div.appendChild( renderer.domElement );
 
 	//bind input controller
@@ -45,10 +47,68 @@ function init() {
 	//handle resizing
 	window.addEventListener( 'resize', onWindowResize, false );
 
-	var loc = new THREE.Object3D();
+	/*var loc = new THREE.Object3D();
 	loc.position.set(0,0,0);
 	loc.add(new THREE.AxisHelper(10));
-	scene.add(loc);
+	scene.add(loc);*/
+
+	var j = new joint(a, alpha, d, theta);
+	scene.add(j.get_object());
+
+	window.input.bind('Q', function() {
+		a += 5;
+		j.set_a(a);
+		j.apply_parameters();
+		render();
+	});
+	window.input.bind('A', function() {
+		a -= 5;
+		j.set_a(a);
+		j.apply_parameters();
+		render();
+	});
+
+	window.input.bind('W', function() {
+		alpha += 5;
+		j.set_alpha(alpha);
+		j.apply_parameters();
+		render();
+	});
+
+	window.input.bind('S', function() {
+		alpha -= 5;
+		j.set_alpha(alpha);
+		j.apply_parameters();
+		render();
+	});
+
+	window.input.bind('E', function() {
+		d += 5;
+		j.set_d(d);
+		j.apply_parameters();
+		render();
+	});
+
+	window.input.bind('D', function() {
+		d -= 5;
+		j.set_d(d);
+		j.apply_parameters();
+		render();
+	});
+
+	window.input.bind('R', function() {
+		theta += 5;
+		j.set_theta(theta);
+		j.apply_parameters();
+		render();
+	});
+
+	window.input.bind('F', function() {
+		theta -= 5;
+		j.set_theta(theta);
+		j.apply_parameters();
+		render();
+	});
 }
 
 
@@ -57,9 +117,9 @@ function render() {
 }
 
 function onWindowResize() {
-	camera.aspect = width / height;
+	camera.aspect = window.innerWidth / height;
 	camera.updateProjectionMatrix();
-	renderer.setSize( width, height );
+	renderer.setSize( window.innerWidth, height );
 
 	render();
 }
