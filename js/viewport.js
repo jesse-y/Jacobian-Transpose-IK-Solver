@@ -47,13 +47,26 @@ function init() {
 	//handle resizing
 	window.addEventListener( 'resize', onWindowResize, false );
 
-	/*var loc = new THREE.Object3D();
-	loc.position.set(0,0,0);
-	loc.add(new THREE.AxisHelper(10));
-	scene.add(loc);*/
-
-	var j = new joint(a, alpha, d, theta);
+	var j = new joint(0, -180, 0, 0);
 	scene.add(j.get_object());
+
+	var b1 = new THREE.Object3D();
+	b1.matrixAutoUpdate = false;
+	b1.add(new THREE.AxisHelper(10));
+	b1.matrix = j.transform.clone();
+
+	var dm = new THREE.Matrix4();
+	dm.set(
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 10,
+			0, 0, 0, 1
+	);
+
+	b1.matrix.multiply(dm);
+
+	scene.add(b1);
+
 
 	window.input.bind('Q', function() {
 		a += 5;
