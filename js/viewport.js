@@ -47,79 +47,67 @@ function init() {
 	//handle resizing
 	window.addEventListener( 'resize', onWindowResize, false );
 
-	var j = new joint(0, -180, 0, 0);
-	scene.add(j.get_object());
+	var j0 = new joint(0, 0, 0, 0);
+	var j1 = new joint(0, 0, 0, 0);
 
-	var b1 = new THREE.Object3D();
-	b1.matrixAutoUpdate = false;
-	b1.add(new THREE.AxisHelper(10));
-	b1.matrix = j.transform.clone();
-
-	var dm = new THREE.Matrix4();
-	dm.set(
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 10,
-			0, 0, 0, 1
-	);
-
-	b1.matrix.multiply(dm);
-
-	scene.add(b1);
+	var kc = new kinematic_chain([j0, j1]);
+	scene.add(kc.get_object());
+	scene.add(j0.get_object());
+	scene.add(j1.get_object());
 
 
 	window.input.bind('Q', function() {
 		a += 5;
-		j.set_a(a);
-		j.apply_parameters();
+		j1.set_a(a);
+		j1.apply_parameters();
 		render();
 	});
 	window.input.bind('A', function() {
 		a -= 5;
-		j.set_a(a);
-		j.apply_parameters();
+		j1.set_a(a);
+		j1.apply_parameters();
 		render();
 	});
 
 	window.input.bind('W', function() {
 		alpha += 5;
-		j.set_alpha(alpha);
-		j.apply_parameters();
+		j1.set_alpha(alpha);
+		j1.apply_parameters();
 		render();
 	});
 
 	window.input.bind('S', function() {
 		alpha -= 5;
-		j.set_alpha(alpha);
-		j.apply_parameters();
+		j1.set_alpha(alpha);
+		j1.apply_parameters();
 		render();
 	});
 
 	window.input.bind('E', function() {
 		d += 5;
-		j.set_d(d);
-		j.apply_parameters();
+		j1.set_d(d);
+		j1.apply_parameters();
 		render();
 	});
 
 	window.input.bind('D', function() {
 		d -= 5;
-		j.set_d(d);
-		j.apply_parameters();
+		j1.set_d(d);
+		j1.apply_parameters();
 		render();
 	});
 
 	window.input.bind('R', function() {
 		theta += 5;
-		j.set_theta(theta);
-		j.apply_parameters();
+		j1.set_theta(theta);
+		j1.apply_parameters();
 		render();
 	});
 
 	window.input.bind('F', function() {
 		theta -= 5;
-		j.set_theta(theta);
-		j.apply_parameters();
+		j1.set_theta(theta);
+		j1.apply_parameters();
 		render();
 	});
 }

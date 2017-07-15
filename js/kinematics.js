@@ -1,8 +1,9 @@
 console.log('kinematics.js loaded');
 
 function kinematic_chain (joints) {
+
 	var end_effector = new THREE.Object3D();
-	end_effector.add(new THREE.AxisHelper(10));
+	//end_effector.add(new THREE.AxisHelper(10));
 	end_effector.matrixAutoUpdate = false;
 
 	this.get_object = function() {
@@ -15,20 +16,18 @@ function kinematic_chain (joints) {
 			return;
 		}
 
-		var ee_transform = new THREE.Matrix4();
-
 		for (var i = 0; i < joints.length; i++) {
 			//apply the ith parameter for the ith joint
 			joints[i].set_theta(parameters[i]);
 
 			if (i > 0) {
-				joints[i].apply_parameters(joints[i-1].transform);
-			} else {
-				joints[i].apply_parameters();
+				joints[i].set_parent(joints[i-1].transform);
 			}
+
+			joints[i].apply_parameters();
 		}
 
-		end_effector.matrix = ee_transform.clone();
+		end_effector.matrix = joints[joints.length-1].transform.clone();
 	}
 
 	this.init = function() {
@@ -43,16 +42,23 @@ function kinematic_chain (joints) {
 }
 
 function joint (link_length, link_twist, link_offset, joint_angle) {
+	var debug = false;
+
 	var a = new THREE.Matrix4();
 	var alpha = new THREE.Matrix4();
 	var d = new THREE.Matrix4();
 	var theta = new THREE.Matrix4();
 
+	var parent_transform;
 	this.transform = new THREE.Matrix4();
 
 	var scene_object = new THREE.Object3D();
-	scene_object.add(new THREE.AxisHelper(10));
+	scene_object.add(new THREE.AxisHelper(5));
 	scene_object.matrixAutoUpdate = false;
+
+	this.set_parent = function(transform) {
+		parent_transform = transform;
+	}
 
 	this.set_a = function(link_length) {
 		a.set(
@@ -61,7 +67,7 @@ function joint (link_length, link_twist, link_offset, joint_angle) {
 			0, 0, 1, 0,
 			0, 0, 0, 1
 		);
-		console.log('a', a, link_length);
+		if (debug) console.log('a', a, link_length);
 	}
 
 	this.set_alpha = function(link_twist) {
@@ -73,7 +79,7 @@ function joint (link_length, link_twist, link_offset, joint_angle) {
 			0, s, c, 0,
 			0, 0, 0, 1
 		);
-		console.log('alpha', alpha, link_twist);
+		if (debug) console.log('alpha', alpha, link_twist);
 	}
 
 	this.set_d = function(link_offset) {
@@ -83,7 +89,7 @@ function joint (link_length, link_twist, link_offset, joint_angle) {
 			0, 0, 1, link_offset,
 			0, 0, 0, 1
 		);
-		console.log('d', d, link_offset);
+		if (debug) console.log('d', d, link_offset);
 	}
 
 	this.set_theta = function(joint_angle) {
@@ -95,20 +101,24 @@ function joint (link_length, link_twist, link_offset, joint_angle) {
 			0, 0, 1, 0,
 			0, 0, 0, 1
 		);
-		console.log('theta', theta, joint_angle);
+		if (debug) console.log('theta', theta, joint_angle);
 	}
 
-	this.apply_parameters = function(transform) {
-		if (typeof transform === 'undefined') {
-			this.transform = new THREE.Matrix4();
-		} else {
-			this.transform.multiply(transform);
-		}
+	this.apply_parameters = function() {
+		var base_transform = new THREE.Matrix4();
+		console.log('apply transform with', link_length, link_twist, link_offset, joint_angle);
 
-		this.transform.multiply(alpha);
-		this.transform.multiply(d);
-		this.transform.multiply(a);
-		this.transform.multiply(theta);
+		base_transform.multiply(d);
+		base_transform.multiply(a);
+		base_transform.multiply(alpha);
+		base_transform.multiply(theta);
+
+		if (typeof parent_transform !== 'undefined') {
+			this.transform = parent_transform.clone();
+			this.transform.multiply(base_transform);
+		} else {
+			this.transform = base_transform.clone();
+		}
 
 		scene_object.matrix = this.transform.clone();
 	}
