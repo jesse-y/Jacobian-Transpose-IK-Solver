@@ -54,6 +54,9 @@ function joint(theta, d, a, alpha) {
 
 	this.transform = new THREE.Matrix4();
 
+	this.parent;
+	this.child;
+
 	this.d_matrix = function() {
 		var m = new THREE.Matrix4();
 		m.set(
@@ -117,13 +120,27 @@ function joint(theta, d, a, alpha) {
 		var alm = this.alpha_matrix();
 		var thm = this.theta_matrix();
 
-		this.transform = new THREE.Matrix4();
+		if (this.parent) {
+			this.transform = this.parent.transform.clone();
+		} else {
+			this.transform = new THREE.Matrix4();
+		}
+
 		this.transform.multiply(dm);
 		this.transform.multiply(am);
 		this.transform.multiply(alm);
 		this.transform.multiply(thm);
 
 		this.mesh.matrix = this.transform.clone();
+
+		if (this.child) {
+			this.child.apply_params();
+		}
+	}
+
+	this.set_parent = function(child) {
+		this.child = child;
+		child.parent = this;
 	}
 
 	this.init = function() {

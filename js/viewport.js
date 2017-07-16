@@ -50,6 +50,8 @@ function init() {
 	var j0 = new joint(0, 0, 0, 0);
 	var j1 = new joint(0, 0, 0, 0);
 
+	j0.set_parent(j1);
+
 	var joints = [j0, j1];
 
 	scene.add(j0.mesh);
