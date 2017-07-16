@@ -54,35 +54,21 @@ function joint(theta, d, a, alpha) {
 
 	this.transform = new THREE.Matrix4();
 
-	this.theta_matrix = function(theta) {
-		var s = Math.sin(radians(theta));
-		var c = Math.cos(radians(theta));
-
-		var m = new THREE.Matrix4();
-		m.set(
-			c, -s, 0, 0,
-			s, c, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1
-		);
-		return m;
-	}
-
-	this.d_matrix = function(d) {
+	this.d_matrix = function() {
 		var m = new THREE.Matrix4();
 		m.set(
 			1, 0, 0, 0,
 			0, 1, 0, 0,
-			0, 0, 1, d,
+			0, 0, 1, this.d,
 			0, 0, 0, 1
 		);
 		return m;
 	}
 
-	this.a_matrix = function(a) {
+	this.a_matrix = function() {
 		var m = new THREE.Matrix4();
 		m.set(
-			1, 0, 0, a,
+			1, 0, 0, this.a,
 			0, 1, 0, 0,
 			0, 0, 1, 0,
 			0, 0, 0, 1
@@ -90,9 +76,9 @@ function joint(theta, d, a, alpha) {
 		return m;
 	}
 
-	this.alpha_matrix = function(alpha) {
-		var s = Math.sin(radians(alpha));
-		var c = Math.cos(radians(alpha));
+	this.alpha_matrix = function() {
+		var s = Math.sin(radians(this.alpha));
+		var c = Math.cos(radians(this.alpha));
 
 		var m = new THREE.Matrix4();
 		m.set(
@@ -104,24 +90,38 @@ function joint(theta, d, a, alpha) {
 		return m;
 	}
 
+	this.theta_matrix = function() {
+		var s = Math.sin(radians(this.theta));
+		var c = Math.cos(radians(this.theta));
+
+		var m = new THREE.Matrix4();
+		m.set(
+			c, -s, 0, 0,
+			s, c, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		);
+		return m;
+	}
+
 	this.apply_params = function() {
 		console.log('apply_params');
-		var st = Math.sin(radians(this.theta));
-		var ct = Math.cos(radians(this.theta));
+		//var st = Math.sin(radians(this.theta));
+		//var ct = Math.cos(radians(this.theta));
 
-		var sa = Math.sin(radians(this.alpha));
-		var ca = Math.cos(radians(this.alpha));
+		//var sa = Math.sin(radians(this.alpha));
+		//var ca = Math.cos(radians(this.alpha));
 
-		console.log('before', this.a, this.d, this.alpha, this.theta);
+		var am = this.a_matrix();
+		var dm = this.d_matrix();
+		var alm = this.alpha_matrix();
+		var thm = this.theta_matrix();
 
-		this.transform.set(
-			ct, -st*ca,  st*sa, this.a*ct,
-			st,  ct*ca, -ct*sa, this.a*st,
-			 0,     sa,     ca,    this.d,
-			 0,      0,      0,         1
-		);
-
-		console.log('after', JSON.stringify(this.transform.elements));
+		this.transform = new THREE.Matrix4();
+		this.transform.multiply(dm);
+		this.transform.multiply(am);
+		this.transform.multiply(alm);
+		this.transform.multiply(thm);
 
 		this.mesh.matrix = this.transform.clone();
 	}
@@ -133,6 +133,6 @@ function joint(theta, d, a, alpha) {
 	this.init();
 
 	function radians (angle) {
-		return (angle * Math.PI / 360);
+		return (angle * Math.PI * 2 / 360);
 	}
 }

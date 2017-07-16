@@ -6,7 +6,7 @@ var camera, scene, renderer, controls;
 var width = 1600;
 var height = 900;
 
-var a = 0, d = 0, alpha = 0, theta = 0;
+var joint_index = 0;
 
 init();
 render();
@@ -50,56 +50,63 @@ function init() {
 	var j0 = new joint(0, 0, 0, 0);
 	var j1 = new joint(0, 0, 0, 0);
 
+	var joints = [j0, j1];
+
 	scene.add(j0.mesh);
 	scene.add(j1.mesh);
 
 
 	window.input.bind('Q', function() {
-		j1.a += 5;
-		j1.apply_params();
+		joints[joint_index].a += 5;
+		joints[joint_index].apply_params();
 		render();
 	});
 	window.input.bind('A', function() {
-		j1.a -= 5;
-		j1.apply_params();
+		joints[joint_index].a -= 5;
+		joints[joint_index].apply_params();
 		render();
 	});
 
 	window.input.bind('W', function() {
-		j1.alpha += 5;
-		j1.apply_params();
+		joints[joint_index].alpha += 5;
+		joints[joint_index].apply_params();
 		render();
 	});
 
 	window.input.bind('S', function() {
-		j1.alpha -= 5;
-		j1.apply_params();
+		joints[joint_index].alpha -= 5;
+		joints[joint_index].apply_params();
 		render();
 	});
 
 	window.input.bind('E', function() {
-		j1.d += 5;
-		j1.apply_params();
+		joints[joint_index].d += 5;
+		joints[joint_index].apply_params();
 		render();
 	});
 
 	window.input.bind('D', function() {
-		j1.d -= 5;
-		j1.apply_params();
+		joints[joint_index].d -= 5;
+		joints[joint_index].apply_params();
 		render();
 	});
 
 	window.input.bind('R', function() {
-		j1.theta += 5;
-		j1.apply_params();
+		joints[joint_index].theta += 5;
+		joints[joint_index].apply_params();
 		render();
 	});
 
 	window.input.bind('F', function() {
-		j1.theta -= 5;
-		j1.apply_params();
+		joints[joint_index].theta -= 5;
+		joints[joint_index].apply_params();
 		render();
 	});
+
+	window.input.bind('T', function() {
+		joint_index += 1;
+		joint_index = joint_index % joints.length;
+	})
 }
 
 
