@@ -50,64 +50,54 @@ function init() {
 	var j0 = new joint(0, 0, 0, 0);
 	var j1 = new joint(0, 0, 0, 0);
 
-	var kc = new kinematic_chain([j0, j1]);
-	scene.add(kc.get_object());
-	scene.add(j0.get_object());
-	scene.add(j1.get_object());
+	scene.add(j0.mesh);
+	scene.add(j1.mesh);
 
 
 	window.input.bind('Q', function() {
-		a += 5;
-		j1.set_a(a);
-		j1.apply_parameters();
+		j1.a += 5;
+		j1.apply_params();
 		render();
 	});
 	window.input.bind('A', function() {
-		a -= 5;
-		j1.set_a(a);
-		j1.apply_parameters();
+		j1.a -= 5;
+		j1.apply_params();
 		render();
 	});
 
 	window.input.bind('W', function() {
-		alpha += 5;
-		j1.set_alpha(alpha);
-		j1.apply_parameters();
+		j1.alpha += 5;
+		j1.apply_params();
 		render();
 	});
 
 	window.input.bind('S', function() {
-		alpha -= 5;
-		j1.set_alpha(alpha);
-		j1.apply_parameters();
+		j1.alpha -= 5;
+		j1.apply_params();
 		render();
 	});
 
 	window.input.bind('E', function() {
-		d += 5;
-		j1.set_d(d);
-		j1.apply_parameters();
+		j1.d += 5;
+		j1.apply_params();
 		render();
 	});
 
 	window.input.bind('D', function() {
-		d -= 5;
-		j1.set_d(d);
-		j1.apply_parameters();
+		j1.d -= 5;
+		j1.apply_params();
 		render();
 	});
 
 	window.input.bind('R', function() {
-		theta += 5;
-		j1.set_theta(theta);
-		j1.apply_parameters();
+		j1.theta += 5;
+		j1.apply_params();
 		render();
 	});
 
 	window.input.bind('F', function() {
-		theta -= 5;
-		j1.set_theta(theta);
-		j1.apply_parameters();
+		j1.theta -= 5;
+		j1.apply_params();
 		render();
 	});
 }

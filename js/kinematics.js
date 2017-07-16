@@ -41,104 +41,98 @@ function kinematic_chain (joints) {
 	this.init();
 }
 
-function joint (link_length, link_twist, link_offset, joint_angle) {
-	var debug = false;
 
-	var a = new THREE.Matrix4();
-	var alpha = new THREE.Matrix4();
-	var d = new THREE.Matrix4();
-	var theta = new THREE.Matrix4();
+function joint(theta, d, a, alpha) {
+	this.mesh = new THREE.Object3D();
+	this.mesh.add(new THREE.AxisHelper(5));
+	this.mesh.matrixAutoUpdate = false;
+	
+	this.theta = theta;
+	this.d = d;
+	this.a = a;
+	this.alpha = alpha;
 
-	var parent_transform;
 	this.transform = new THREE.Matrix4();
 
-	var scene_object = new THREE.Object3D();
-	scene_object.add(new THREE.AxisHelper(5));
-	scene_object.matrixAutoUpdate = false;
+	this.theta_matrix = function(theta) {
+		var s = Math.sin(radians(theta));
+		var c = Math.cos(radians(theta));
 
-	this.set_parent = function(transform) {
-		parent_transform = transform;
-	}
-
-	this.set_a = function(link_length) {
-		a.set(
-			1, 0, 0, link_length,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1
-		);
-		if (debug) console.log('a', a, link_length);
-	}
-
-	this.set_alpha = function(link_twist) {
-		var s = Math.sin(link_twist * Math.PI / 360);
-		var c = Math.cos(link_twist * Math.PI / 360);
-		alpha.set(
-			1, 0, 0, 0,
-			0, c, -s, 0,
-			0, s, c, 0,
-			0, 0, 0, 1
-		);
-		if (debug) console.log('alpha', alpha, link_twist);
-	}
-
-	this.set_d = function(link_offset) {
-		d.set(
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, link_offset,
-			0, 0, 0, 1
-		);
-		if (debug) console.log('d', d, link_offset);
-	}
-
-	this.set_theta = function(joint_angle) {
-		var s = Math.sin(joint_angle * Math.PI / 360);
-		var c = Math.cos(joint_angle * Math.PI / 360);
-		theta.set(
+		var m = new THREE.Matrix4();
+		m.set(
 			c, -s, 0, 0,
 			s, c, 0, 0,
 			0, 0, 1, 0,
 			0, 0, 0, 1
 		);
-		if (debug) console.log('theta', theta, joint_angle);
+		return m;
 	}
 
-	this.apply_parameters = function() {
-		var base_transform = new THREE.Matrix4();
-		console.log('apply transform with', link_length, link_twist, link_offset, joint_angle);
-
-		base_transform.multiply(d);
-		base_transform.multiply(a);
-		base_transform.multiply(alpha);
-		base_transform.multiply(theta);
-
-		if (typeof parent_transform !== 'undefined') {
-			this.transform = parent_transform.clone();
-			this.transform.multiply(base_transform);
-		} else {
-			this.transform = base_transform.clone();
-		}
-
-		scene_object.matrix = this.transform.clone();
+	this.d_matrix = function(d) {
+		var m = new THREE.Matrix4();
+		m.set(
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, d,
+			0, 0, 0, 1
+		);
+		return m;
 	}
 
-	this.get_object = function() {
-		return scene_object;
+	this.a_matrix = function(a) {
+		var m = new THREE.Matrix4();
+		m.set(
+			1, 0, 0, a,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1
+		);
+		return m;
 	}
 
-	this.get_transform = function() {
-		return this.transform;
+	this.alpha_matrix = function(alpha) {
+		var s = Math.sin(radians(alpha));
+		var c = Math.cos(radians(alpha));
+
+		var m = new THREE.Matrix4();
+		m.set(
+			1, 0, 0, 0,
+			0, c, -s, 0,
+			0, s, c, 0,
+			0, 0, 0, 1
+		);
+		return m;
 	}
 
-	this.init = function () {
-		this.set_a(link_length);
-		this.set_alpha(link_twist);
-		this.set_d(link_offset);
-		this.set_theta(joint_angle);
+	this.apply_params = function() {
+		console.log('apply_params');
+		var st = Math.sin(radians(this.theta));
+		var ct = Math.cos(radians(this.theta));
 
-		this.apply_parameters();
+		var sa = Math.sin(radians(this.alpha));
+		var ca = Math.cos(radians(this.alpha));
+
+		console.log('before', this.a, this.d, this.alpha, this.theta);
+
+		this.transform.set(
+			ct, -st*ca,  st*sa, this.a*ct,
+			st,  ct*ca, -ct*sa, this.a*st,
+			 0,     sa,     ca,    this.d,
+			 0,      0,      0,         1
+		);
+
+		console.log('after', JSON.stringify(this.transform.elements));
+
+		this.mesh.matrix = this.transform.clone();
+	}
+
+	this.init = function() {
+		console.log(this);
 	}
 
 	this.init();
+
+	function radians (angle) {
+		return (angle * Math.PI / 360);
+	}
 }
