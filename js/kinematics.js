@@ -42,10 +42,20 @@ function kinematic_chain (joints) {
 }
 
 
-function joint(theta, d, a, alpha) {
-	this.mesh = new THREE.Object3D();
-	this.mesh.add(new THREE.AxisHelper(5));
-	this.mesh.matrixAutoUpdate = false;
+function joint(d, a, alpha, theta) {
+	var j_geo = new THREE.CylinderGeometry(2, 2, 4, 12);
+	var j_mat = new THREE.MeshBasicMaterial( {color: 0xffe100} );
+
+	j_geo.rotateX(Math.PI / 2);
+
+	this.j_mesh = new THREE.Mesh(j_geo, j_mat);
+	this.j_mesh.add(new THREE.AxisHelper(5));
+	this.j_mesh.matrixAutoUpdate = false;
+
+	var l_geo;
+	var l_mat = new THREE.MeshBasicMaterial( {color: 0x569e0e} );
+
+	this.l_mesh = new THREE.Object3D();
 	
 	this.theta = theta;
 	this.d = d;
@@ -108,12 +118,7 @@ function joint(theta, d, a, alpha) {
 	}
 
 	this.apply_params = function() {
-		console.log('apply_params');
-		//var st = Math.sin(radians(this.theta));
-		//var ct = Math.cos(radians(this.theta));
-
-		//var sa = Math.sin(radians(this.alpha));
-		//var ca = Math.cos(radians(this.alpha));
+		console.log(`apply_params: [ d=${this.d}, a=${this.a}, alpha=${this.alpha}, theta=${this.theta} ]`);
 
 		var am = this.a_matrix();
 		var dm = this.d_matrix();
@@ -131,20 +136,37 @@ function joint(theta, d, a, alpha) {
 		this.transform.multiply(alm);
 		this.transform.multiply(thm);
 
-		this.mesh.matrix = this.transform.clone();
+		this.j_mesh.matrix = this.transform.clone();
+		this.l_mesh.matrix = this.transform.clone();
 
 		if (this.child) {
 			this.child.apply_params();
 		}
 	}
 
-	this.set_parent = function(child) {
+	this.set_parent = function(child, type) {
 		this.child = child;
 		child.parent = this;
+
+		if (type == 'z') {
+			l_geo = new THREE.BoxGeometry(2, 2, child.d);
+			l_geo.translate(0, 0, child.d/2);
+		} else if (type == 'x') {
+			l_geo = new THREE.BoxGeometry(2, 2, child.a);
+			l_geo.rotateY(Math.PI / 2);
+			l_geo.translate(child.a/2, 0, 0);
+		}
+
+		this.l_mesh = new THREE.Mesh(l_geo, l_mat);
+		this.l_mesh.matrixAutoUpdate = false;
+
+		//apply transforms for all objects in the chain
+		this.apply_params();
 	}
 
 	this.init = function() {
 		console.log(this);
+		this.apply_params();
 	}
 
 	this.init();

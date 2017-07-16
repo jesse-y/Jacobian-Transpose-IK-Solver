@@ -47,15 +47,23 @@ function init() {
 	//handle resizing
 	window.addEventListener( 'resize', onWindowResize, false );
 
-	var j0 = new joint(0, 0, 0, 0);
-	var j1 = new joint(0, 0, 0, 0);
+	var j0 = new joint(0, 0, -90, 0);
+	var j1 = new joint(10, 0, 90, 0);
+	var j2 = new joint(0, 10, 0, 0);
 
-	j0.set_parent(j1);
+	j0.set_parent(j1, 'z');
+	j1.set_parent(j2, 'x');
 
-	var joints = [j0, j1];
+	var joints = [j0, j1, j2];
 
-	scene.add(j0.mesh);
-	scene.add(j1.mesh);
+	scene.add(j0.j_mesh);
+	scene.add(j0.l_mesh);
+
+	scene.add(j1.j_mesh);
+	scene.add(j1.l_mesh);
+
+	scene.add(j2.j_mesh);
+	scene.add(j2.l_mesh);
 
 
 	window.input.bind('Q', function() {
