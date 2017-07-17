@@ -144,18 +144,15 @@ function joint(d, a, alpha, theta) {
 		}
 	}
 
-	this.set_parent = function(child, type) {
+	this.set_parent = function(child) {
 		this.child = child;
 		child.parent = this;
 
-		if (type == 'z') {
-			l_geo = new THREE.BoxGeometry(2, 2, child.d);
-			l_geo.translate(0, 0, child.d/2);
-		} else if (type == 'x') {
-			l_geo = new THREE.BoxGeometry(2, 2, child.a);
-			l_geo.rotateY(Math.PI / 2);
-			l_geo.translate(child.a/2, 0, 0);
-		}
+		var x_depth = Math.max(2, child.a);
+		var z_depth = Math.max(2, child.d);
+
+		l_geo = new THREE.BoxGeometry(x_depth, 2, z_depth);
+		l_geo.translate(child.a/2, 0, child.d/2);
 
 		this.l_mesh = new THREE.Mesh(l_geo, l_mat);
 		this.l_mesh.matrixAutoUpdate = false;

@@ -6,6 +6,10 @@ function SceneCamera(camera, render_func) {
 	var r_btn = 2;
 	const default_btn_state = [false, 0, 0, 0, 0];
 
+	const default_r = 100;
+	const default_theta = 70;
+	const default_phi = 70;
+
 	//the camera controller consists of a sphere defined around a target.
 	//the camera sits along the surface of the sphere, looking at the target.
 	//theta is the azimuth (horizontal angle) of the camera.
@@ -18,9 +22,9 @@ function SceneCamera(camera, render_func) {
 	var prev_target = target.clone();
 	var mouse = {};
 
-	r = 150;
-	theta = 70;
-	phi = 70;
+	r = default_r;
+	theta = default_theta;
+	phi = default_phi;
 
 	mouse[l_btn] = default_btn_state;
 	mouse[m_btn] = default_btn_state;
@@ -159,9 +163,9 @@ function SceneCamera(camera, render_func) {
 		target = new THREE.Object3D();
 		prev_target = target.clone();
 
-		r = 150;
-		theta = 70;
-		phi = 70;
+		r = default_r;
+		theta = default_theta;
+		phi = default_phi;
 
 		mouse[l_btn] = default_btn_state;
 		mouse[m_btn] = default_btn_state;
