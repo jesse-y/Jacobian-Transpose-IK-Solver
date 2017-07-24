@@ -1,47 +1,5 @@
 console.log('kinematics.js loaded');
 
-function kinematic_chain (joints) {
-
-	var end_effector = new THREE.Object3D();
-	//end_effector.add(new THREE.AxisHelper(10));
-	end_effector.matrixAutoUpdate = false;
-
-	this.get_object = function() {
-		return end_effector;
-	}
-
-	this.apply_transforms = function(parameters) {
-		if (parameters.length != joints.length) {
-			console.log('each joint requires a parameter!');
-			return;
-		}
-
-		for (var i = 0; i < joints.length; i++) {
-			//apply the ith parameter for the ith joint
-			joints[i].set_theta(parameters[i]);
-
-			if (i > 0) {
-				joints[i].set_parent(joints[i-1].transform);
-			}
-
-			joints[i].apply_parameters();
-		}
-
-		end_effector.matrix = joints[joints.length-1].transform.clone();
-	}
-
-	this.init = function() {
-		var parameters = [];
-		joints.forEach(function(j) {
-			parameters.push(0);
-		})
-		this.apply_transforms(parameters);
-	}
-
-	this.init();
-}
-
-
 function joint(d, a, alpha, theta) {
 	var j_geo = new THREE.CylinderGeometry(2, 2, 4, 12);
 	var j_mat = new THREE.MeshBasicMaterial( {color: 0xffe100} );
@@ -51,6 +9,7 @@ function joint(d, a, alpha, theta) {
 	this.j_mesh = new THREE.Mesh(j_geo, j_mat);
 	this.j_mesh.add(new THREE.AxisHelper(5));
 	this.j_mesh.matrixAutoUpdate = false;
+	this.j_mesh.joint_parent = this;
 
 	var l_geo;
 	var l_mat = new THREE.MeshBasicMaterial( {color: 0x569e0e} );
@@ -156,6 +115,7 @@ function joint(d, a, alpha, theta) {
 
 		this.l_mesh = new THREE.Mesh(l_geo, l_mat);
 		this.l_mesh.matrixAutoUpdate = false;
+		this.l_mesh.joint_parent = this;
 
 		//apply transforms for all objects in the chain
 		this.apply_params();

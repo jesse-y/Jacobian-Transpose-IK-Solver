@@ -51,7 +51,7 @@ function SceneCamera(camera, render_func) {
 		event.preventDefault();
 		var btn = event.button;
 
-		//if (!window.input.is_down('ALT')) return;
+		if (!window.input.is_down('ALT')) return;
 
 		if (mouse[btn][0]) {
 			if (btn == l_btn) {
@@ -187,10 +187,91 @@ function SceneCamera(camera, render_func) {
 			return false;
 		}, false);
 
-		window.input.bind('T', reset_view);
+		window.input.bind('F', reset_view);
 
 		set_camera_pos();
 		render_func();
+	}
+
+	this.init();
+}
+
+function Selector(scene, camera, render) {
+	var rc = new THREE.Raycaster();
+	var m = new THREE.Vector2();
+	var manipulator = new THREE.Object3D();
+
+	//x axis
+	manipulator.add(new THREE.ArrowHelper(
+		new THREE.Vector3(1, 0, 0),
+		new THREE.Vector3(0, 0, 0),
+		15,
+		0xff0000,
+	));
+	//y axis
+	manipulator.add(new THREE.ArrowHelper(
+		new THREE.Vector3(0, 1, 0),
+		new THREE.Vector3(0, 0, 0),
+		15,
+		0x00ff00,
+	));
+	//z axis
+	manipulator.add(new THREE.ArrowHelper(
+		new THREE.Vector3(0, 0, 1),
+		new THREE.Vector3(0, 0, 0),
+		15,
+		0x0000ff,
+	));
+
+	manipulator.visible = false;
+
+	scene.add(manipulator);
+
+	var width = 1600;
+	var height = 900;
+
+	this.selected;
+
+	function mouse_move(event) {
+		m.x = (event.clientX / window.innerWidth) * 2 - 1;
+		m.y = -(event.clientY / height) * 2 + 1;
+	}
+
+	function mouse_click() {
+		if (window.input.is_down('ALT')) return;
+
+		rc.setFromCamera(m, camera);
+
+		var intersects = rc.intersectObjects(scene.children);
+
+		if (intersects.length > 0) {
+			var o = intersects[0].object;
+			if (o.type === 'Mesh') {
+				this.selected = o;
+
+				if (this.selected.joint_parent) {
+					var joint = this.selected.joint_parent;
+					console.log('Joint parameters:', joint.a, joint.d, joint.alpha, joint.theta);
+				}
+
+				manipulator.position.copy(this.selected.getWorldPosition());
+				manipulator.visible = true;
+			} else {
+				this.selected = null;
+			}
+		}
+
+		if (!this.selected) {
+			manipulator.visible = false;
+		}
+
+		render();
+	}
+
+	this.init = function() {
+		var viewport_elem = document.getElementById('viewport').childNodes[0];
+		viewport_elem.addEventListener('mousemove', mouse_move, false);
+		viewport_elem.addEventListener('click', mouse_click, false);
 	}
 
 	this.init();

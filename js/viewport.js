@@ -1,6 +1,6 @@
 console.log('viewport.js loaded');
 
-var camera, scene, renderer, controls;
+var camera, scene, renderer, controls, selector;
 
 //default variables
 var width = 1600;
@@ -44,6 +44,9 @@ function init() {
 	//bind input controller
 	controls = new SceneCamera(camera, render);
 
+	//create object selection class
+	selector = new Selector(scene, camera, render);
+
 	//handle resizing
 	window.addEventListener( 'resize', onWindowResize, false );
 
@@ -69,61 +72,7 @@ function init() {
 
 	scene.add(j3.j_mesh);
 	scene.add(j3.l_mesh);
-
-
-	window.input.bind('Q', function() {
-		joints[joint_index].a += 5;
-		joints[joint_index].apply_params();
-		render();
-	});
-	window.input.bind('A', function() {
-		joints[joint_index].a -= 5;
-		joints[joint_index].apply_params();
-		render();
-	});
-
-	window.input.bind('W', function() {
-		joints[joint_index].alpha += 5;
-		joints[joint_index].apply_params();
-		render();
-	});
-
-	window.input.bind('S', function() {
-		joints[joint_index].alpha -= 5;
-		joints[joint_index].apply_params();
-		render();
-	});
-
-	window.input.bind('E', function() {
-		joints[joint_index].d += 5;
-		joints[joint_index].apply_params();
-		render();
-	});
-
-	window.input.bind('D', function() {
-		joints[joint_index].d -= 5;
-		joints[joint_index].apply_params();
-		render();
-	});
-
-	window.input.bind('R', function() {
-		joints[joint_index].theta += 5;
-		joints[joint_index].apply_params();
-		render();
-	});
-
-	window.input.bind('F', function() {
-		joints[joint_index].theta -= 5;
-		joints[joint_index].apply_params();
-		render();
-	});
-
-	window.input.bind('T', function() {
-		joint_index += 1;
-		joint_index = joint_index % joints.length;
-	})
 }
-
 
 function render() {
 	renderer.render(scene, camera);
