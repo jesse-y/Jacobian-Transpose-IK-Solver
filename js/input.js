@@ -244,8 +244,8 @@ function Selector(scene, camera, render) {
 
 		var intersects = rc.intersectObjects(scene.children);
 
-		if (intersects.length > 0) {
-			var o = intersects[0].object;
+		for (var i = 0; i < intersects.length; i++) {
+			var o = intersects[i].object;
 			if (o.type === 'Mesh') {
 				this.selected = o;
 
@@ -256,9 +256,13 @@ function Selector(scene, camera, render) {
 
 				manipulator.position.copy(this.selected.getWorldPosition());
 				manipulator.visible = true;
+
+				break;
 			} else {
 				this.selected = null;
 			}
+
+			console.log(o.type);
 		}
 
 		if (!this.selected) {
@@ -278,8 +282,18 @@ function Selector(scene, camera, render) {
 }
 
 (function () {
+	//mouse keycodes are different for different browsers
+	const l_btn = 0;
+	const m_btn = 1;
+	const r_btn = 2;
+
 	var keys = {};
 	var bound_func = {};
+	var mouse = {};
+
+	mouse[l_btn] = [false, 0, 0];
+	mouse[m_btn] = [false, 0, 0];
+	mouse[r_btn] = [false, 0, 0];
 
 	function setKey(event, status) {
 		var code = event.keyCode;
@@ -323,6 +337,11 @@ function Selector(scene, camera, render) {
 		}
 	}
 
+	function set_mouse(event, status) {
+		var btn = event.button;
+		mouse[btn] = [status, event.clientX, event.clientY];
+	}
+
 	document.addEventListener('keydown', function(e) {
 		setKey(e, true);
 	})
@@ -332,10 +351,19 @@ function Selector(scene, camera, render) {
 	document.addEventListener('blur', function () {
 		keys= {};
 	})
+	document.addEventListener('mousedown', function(e) {
+		set_mouse(e, true);
+	}, false)
+	document.addEventListener('mouseup', function(e) {
+		set_mouse(e, false);	
+	}, false);
 
 	window.input = {
 		is_down: function(key) {
 			return keys[key.toUpperCase()];
+		},
+		mouse: function() {
+			return mouse;
 		},
 		bind: function(key, func) {
 			bound_func[key.toUpperCase()] = func;
