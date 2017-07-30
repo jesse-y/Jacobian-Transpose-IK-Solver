@@ -51,7 +51,7 @@ function SceneCamera(camera, render_func) {
 		event.preventDefault();
 		var btn = event.button;
 
-		if (!window.input.is_down('ALT')) return;
+		//if (!window.input.is_down('ALT')) return;
 
 		if (mouse[btn][0]) {
 			if (btn == l_btn) {

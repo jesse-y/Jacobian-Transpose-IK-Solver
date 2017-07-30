@@ -23,6 +23,8 @@ function joint(d, a, alpha, theta) {
 
 	this.transform = new THREE.Matrix4();
 
+	this.base_transform = new THREE.Matrix4();
+
 	this.parent;
 	this.child;
 
@@ -84,22 +86,33 @@ function joint(d, a, alpha, theta) {
 		var alm = this.alpha_matrix();
 		var thm = this.theta_matrix();
 
+		this.transform = this.base_transform.clone();
+
 		if (this.parent) {
-			this.transform = this.parent.transform.clone();
-		} else {
-			this.transform = new THREE.Matrix4();
+			this.transform.multiply(this.parent.transform.clone());
 		}
 
+		/*
 		this.transform.multiply(dm);
 		this.transform.multiply(am);
 		this.transform.multiply(alm);
 		this.transform.multiply(thm);
+		*/
+
+		this.transform.multiply(am);
+		this.transform.multiply(alm);
+
+		this.transform.multiply(dm);
+		this.transform.multiply(thm);
+
 
 		this.j_mesh.matrix = this.transform.clone();
 		this.l_mesh.matrix = this.transform.clone();
 
 		if (this.child) {
 			this.child.apply_params();
+		} else {
+			console.log('==========| END JOINTS | ==========');
 		}
 	}
 
@@ -112,6 +125,7 @@ function joint(d, a, alpha, theta) {
 
 		l_geo = new THREE.BoxGeometry(x_depth, 2, z_depth);
 		l_geo.translate(child.a/2, 0, child.d/2);
+		l_geo.rotateX(radians(this.alpha));
 
 		this.l_mesh = new THREE.Mesh(l_geo, l_mat);
 		this.l_mesh.matrixAutoUpdate = false;
