@@ -1,8 +1,11 @@
 console.log('kinematics.js loaded');
 
 function joint(d, a, alpha, theta) {
+	var j_col = rand_col();
+
 	var j_geo = new THREE.CylinderGeometry(2, 2, 4, 12);
-	var j_mat = new THREE.MeshBasicMaterial( {color: 0xffe100} );
+	var j_mat = new THREE.MeshBasicMaterial( {color: j_col} );
+	//var j_mat = new THREE.MeshBasicMaterial( {color: 0xffe100} );
 
 	j_geo.rotateX(Math.PI / 2);
 
@@ -12,7 +15,8 @@ function joint(d, a, alpha, theta) {
 	this.j_mesh.joint_parent = this;
 
 	var l_geo;
-	var l_mat = new THREE.MeshBasicMaterial( {color: 0x569e0e} );
+	var l_mat = new THREE.MeshBasicMaterial( {color: j_col} );
+	//var l_mat = new THREE.MeshBasicMaterial( {color: 0x569e0e} );
 
 	this.l_mesh = new THREE.Object3D();
 	
@@ -92,18 +96,12 @@ function joint(d, a, alpha, theta) {
 			this.transform.multiply(this.parent.transform.clone());
 		}
 
-		/*
-		this.transform.multiply(dm);
-		this.transform.multiply(am);
 		this.transform.multiply(alm);
-		this.transform.multiply(thm);
-		*/
-
 		this.transform.multiply(am);
-		this.transform.multiply(alm);
 
-		this.transform.multiply(dm);
+
 		this.transform.multiply(thm);
+		this.transform.multiply(dm);
 
 
 		this.j_mesh.matrix = this.transform.clone();
@@ -125,7 +123,7 @@ function joint(d, a, alpha, theta) {
 
 		l_geo = new THREE.BoxGeometry(x_depth, 2, z_depth);
 		l_geo.translate(child.a/2, 0, child.d/2);
-		l_geo.rotateX(radians(this.alpha));
+		l_geo.rotateX(radians(child.alpha));
 
 		this.l_mesh = new THREE.Mesh(l_geo, l_mat);
 		this.l_mesh.matrixAutoUpdate = false;
@@ -144,5 +142,13 @@ function joint(d, a, alpha, theta) {
 
 	function radians (angle) {
 		return (angle * Math.PI * 2 / 360);
+	}
+
+	function rand_col () {
+		return parseInt(
+			(Math.random() * 0xFF << 0).toString(16) + 
+			(Math.random() * 0xFF << 0).toString(16) + 
+			(Math.random() * 0xFF << 0).toString(16)
+		, 16);
 	}
 }
