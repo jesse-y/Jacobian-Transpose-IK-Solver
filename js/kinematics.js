@@ -22,7 +22,7 @@ function joint(d, a, alpha, theta) {
 
 		j_geo.rotateX(Math.PI / 2);
 		j_geo.translate(0, 0, 0.5);
-		j_geo.scale(1, 1, Math.max(0.5, scope.d));
+		j_geo.scale(1, 1, scope.d);
 		j_geo.translate(0, 0, -scope.d);
 
 		var mesh = new THREE.Mesh(j_geo, j_mat);
@@ -41,8 +41,9 @@ function joint(d, a, alpha, theta) {
 		l_geo.translate(0.5, 0, 0);
 
 		if (scope.child) {
-			l_geo.scale(Math.max(scope.child.a, 0.5), 1, 1);
-			//l_geo.translate(-scope.child.a, 0, 0);
+			l_geo.scale(scope.child.a, 1, 1);
+		} else {
+			l_geo.scale(0, 1, 1);
 		}
 
 		var mesh = new THREE.Mesh(l_geo, l_mat);

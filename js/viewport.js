@@ -59,10 +59,10 @@ function init() {
 
 
 	var j0 = new joint(5, 0, -90, 0);
-	var j1 = new joint(0, 5, 90, 90);
-	var j2 = new joint(0, 15, 0, 0);
+	var j1 = new joint(0, 5, 90, 125);
+	var j2 = new joint(0, 15, 0, -35);
 	var j3 = new joint(20, 5, 90, 0);
-	var j4 = new joint(0, 0, -90, -180);
+	var j4 = new joint(0, 0, -90, 90);
 	var j5 = new joint(5, 0, -90, 0);
 
 
