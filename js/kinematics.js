@@ -1,36 +1,56 @@
 console.log('kinematics.js loaded');
 
 function joint(d, a, alpha, theta) {
-	var j_col = rand_col();
-
-	var j_geo = new THREE.CylinderGeometry(2, 2, 4, 12);
-	var j_mat = new THREE.MeshBasicMaterial( {color: j_col} );
-	//var j_mat = new THREE.MeshBasicMaterial( {color: 0xffe100} );
-
-	j_geo.rotateX(Math.PI / 2);
-
-	this.j_mesh = new THREE.Mesh(j_geo, j_mat);
-	this.j_mesh.add(new THREE.AxisHelper(5));
-	this.j_mesh.matrixAutoUpdate = false;
-	this.j_mesh.joint_parent = this;
-
-	var l_geo;
-	var l_mat = new THREE.MeshBasicMaterial( {color: j_col} );
-	//var l_mat = new THREE.MeshBasicMaterial( {color: 0x569e0e} );
-
-	this.l_mesh = new THREE.Object3D();
-	
 	this.theta = theta;
 	this.d = d;
 	this.a = a;
 	this.alpha = alpha;
 
-	this.transform = new THREE.Matrix4();
+	var j_col = rand_col();
 
-	this.base_transform = new THREE.Matrix4();
+	this.j_mesh = make_j_mesh(this);
+	this.l_mesh = make_l_mesh(this);
+
+	this.transform = new THREE.Matrix4();
 
 	this.parent;
 	this.child;
+
+	function make_j_mesh(scope) {
+		var j_geo = new THREE.CylinderGeometry(1, 1, 1);
+		var j_mat = new THREE.MeshBasicMaterial( {color: 0xffe100} );
+
+		j_geo.rotateX(Math.PI / 2);
+		j_geo.translate(0, 0, 0.5);
+		j_geo.scale(1, 1, Math.max(0.5, scope.d));
+		j_geo.translate(0, 0, -scope.d);
+
+		var mesh = new THREE.Mesh(j_geo, j_mat);
+		mesh.add(new THREE.AxisHelper(5));
+		mesh.matrixAutoUpdate = false;
+		mesh.joint_parent = this;
+
+		return mesh;
+	}
+
+	function make_l_mesh(scope) {
+		var l_geo = new THREE.CylinderGeometry(1, 1, 1);
+		var l_mat = new THREE.MeshBasicMaterial( {color: 0x569e0e} );
+
+		l_geo.rotateZ(Math.PI / 2);
+		l_geo.translate(0.5, 0, 0);
+
+		if (scope.child) {
+			l_geo.scale(Math.max(scope.child.a, 0.5), 1, 1);
+			//l_geo.translate(-scope.child.a, 0, 0);
+		}
+
+		var mesh = new THREE.Mesh(l_geo, l_mat);
+		mesh.matrixAutoUpdate = false;
+		mesh.joint_parent = this;
+
+		return mesh;
+	}
 
 	this.d_matrix = function() {
 		var m = new THREE.Matrix4();
@@ -90,7 +110,7 @@ function joint(d, a, alpha, theta) {
 		var alm = this.alpha_matrix();
 		var thm = this.theta_matrix();
 
-		this.transform = this.base_transform.clone();
+		this.transform = new THREE.Matrix4();
 
 		if (this.parent) {
 			this.transform.multiply(this.parent.transform.clone());
@@ -103,9 +123,9 @@ function joint(d, a, alpha, theta) {
 		this.transform.multiply(thm);
 		this.transform.multiply(dm);
 
-
 		this.j_mesh.matrix = this.transform.clone();
 		this.l_mesh.matrix = this.transform.clone();
+
 
 		if (this.child) {
 			this.child.apply_params();
@@ -118,16 +138,7 @@ function joint(d, a, alpha, theta) {
 		this.child = child;
 		child.parent = this;
 
-		var x_depth = Math.max(2, child.a);
-		var z_depth = Math.max(2, child.d);
-
-		l_geo = new THREE.BoxGeometry(x_depth, 2, z_depth);
-		l_geo.translate(child.a/2, 0, child.d/2);
-		l_geo.rotateX(radians(child.alpha));
-
-		this.l_mesh = new THREE.Mesh(l_geo, l_mat);
-		this.l_mesh.matrixAutoUpdate = false;
-		this.l_mesh.joint_parent = this;
+		this.l_mesh = make_l_mesh(this);
 
 		//apply transforms for all objects in the chain
 		this.apply_params();
