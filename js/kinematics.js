@@ -6,7 +6,8 @@ function joint(d, a, alpha, theta) {
 	this.a = a;
 	this.alpha = alpha;
 
-	var j_col = rand_col();
+	var j_col = 0xb2b2b2
+	this.l_col = 0xffe100;
 
 	this.j_mesh = make_j_mesh(this);
 	this.l_mesh = make_l_mesh(this);
@@ -18,7 +19,7 @@ function joint(d, a, alpha, theta) {
 
 	function make_j_mesh(scope) {
 		var j_geo = new THREE.CylinderGeometry(1, 1, 1);
-		var j_mat = new THREE.MeshBasicMaterial( {color: 0xffe100} );
+		var j_mat = new THREE.MeshBasicMaterial( {color: j_col, transparent:true, opacity:0.8} );
 
 		j_geo.rotateX(Math.PI / 2);
 		j_geo.translate(0, 0, 0.5);
@@ -26,7 +27,7 @@ function joint(d, a, alpha, theta) {
 		j_geo.translate(0, 0, -scope.d);
 
 		var mesh = new THREE.Mesh(j_geo, j_mat);
-		mesh.add(new THREE.AxisHelper(5));
+		//mesh.add(new THREE.AxisHelper(5));
 		mesh.matrixAutoUpdate = false;
 		mesh.joint_parent = this;
 
@@ -35,7 +36,7 @@ function joint(d, a, alpha, theta) {
 
 	function make_l_mesh(scope) {
 		var l_geo = new THREE.CylinderGeometry(1, 1, 1);
-		var l_mat = new THREE.MeshBasicMaterial( {color: 0x569e0e} );
+		var l_mat = new THREE.MeshBasicMaterial( {color: scope.l_col, transparent:true, opacity:0.8} );
 
 		l_geo.rotateZ(Math.PI / 2);
 		l_geo.translate(0.5, 0, 0);
@@ -49,6 +50,7 @@ function joint(d, a, alpha, theta) {
 		var mesh = new THREE.Mesh(l_geo, l_mat);
 		mesh.matrixAutoUpdate = false;
 		mesh.joint_parent = this;
+
 
 		return mesh;
 	}
@@ -120,7 +122,6 @@ function joint(d, a, alpha, theta) {
 		this.transform.multiply(alm);
 		this.transform.multiply(am);
 
-
 		this.transform.multiply(thm);
 		this.transform.multiply(dm);
 
@@ -145,12 +146,61 @@ function joint(d, a, alpha, theta) {
 		this.apply_params();
 	}
 
+	this.make_meshes = function() {
+		this.l_mesh = make_l_mesh(this);
+	}
+
 	this.init = function() {
-		console.log(this);
 		this.apply_params();
 	}
 
 	this.init();
+
+	this.get_ee_position = function() {
+		this.apply_params();
+		if (this.hasOwnProperty('child')) {
+			var c = this.child;
+			while (c.child) {
+				c = c.child;
+			}
+			return c.transform;
+		} else {
+			return this.transform;
+		}
+	}
+
+	this.iterateIK = function(target, scene, render, last) {
+		var joint_centre = new THREE.Vector3(...this.transform.elements.slice(12, 15));
+		var tip = new THREE.Vector3(...last.transform.elements.slice(12, 15));
+
+		var to_tip = tip.clone().sub(joint_centre);
+		var to_target = target.clone().sub(tip);
+
+		var movement_vector = to_tip.clone().cross(new THREE.Vector3(...this.transform.elements.slice(8, 11))).normalize();
+		var gradient = movement_vector.clone().dot(to_target.clone().normalize());
+
+		var colour = 0xff00ff;
+
+		/*
+		var jc = new THREE.ArrowHelper(joint_centre.clone().normalize(), new THREE.Vector3(0, 0, 0), joint_centre.length(), colour);
+		var t = new THREE.ArrowHelper(tip.clone().normalize(), new THREE.Vector3(0,0,0), tip.length(), colour);
+		var tt = new THREE.ArrowHelper(to_tip.clone().normalize(), joint_centre, to_tip.length(), colour);
+		var tta = new THREE.ArrowHelper(to_target.clone().normalize(), tip, to_target.length(), colour);
+		var a = new THREE.ArrowHelper(new THREE.Vector3(...this.transform.elements.slice(8,11)).normalize(), new THREE.Vector3(0,0,0), 20, 0xffff00);
+		var mv = new THREE.ArrowHelper(movement_vector.clone().normalize(), tip, movement_vector.length(), 0x0000ff);
+		console.log('gradient=', gradient);
+		console.log('relative magnitude=', gradient/movement_vector.length());
+
+		scene.add(jc);
+		scene.add(t);
+		scene.add(tt);
+		scene.add(tta);
+		scene.add(a);
+		scene.add(mv);
+		render();*/
+
+		return gradient;
+	}
 
 	function radians (angle) {
 		return (angle * Math.PI * 2 / 360);
