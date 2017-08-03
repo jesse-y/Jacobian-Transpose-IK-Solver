@@ -24,7 +24,8 @@ function KinematicChain(joints) {
 		j_colour = 0xb2b2b2;
 
 	//given current state of each a, d, theta and alpha array, determine
-	//what the end effector position is.
+	//what the end effector position is. a dh matrix is calculated for each
+	//joint, and the base transform is sucessively multiplied up the chain.
 	this.forward = function() {
 		this.j_transforms = [];
 		console.log('=================== FORWARD START ===================');
