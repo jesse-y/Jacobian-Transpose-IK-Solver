@@ -113,8 +113,10 @@ function KinematicChain(joints) {
 		var j_geo = new THREE.CylinderGeometry(1, 1, 1);
 		var j_mat = new THREE.MeshBasicMaterial( {color: j_colour, transparent:true, opacity:0.8} );
 
+		//point the cylinder along the Z axis.
 		j_geo.rotateX(Math.PI / 2);
 		if (self.d[index] != 0) {
+			//scale non-zero d values along the Z axis.
 			j_geo.translate(0, 0, 0.5);
 			j_geo.scale(1, 1, self.d[index]);
 			j_geo.translate(0, 0, -self.d[index]);
@@ -130,9 +132,10 @@ function KinematicChain(joints) {
 		var l_geo = new THREE.CylinderGeometry(1, 1, 1);
 		var l_mat = new THREE.MeshBasicMaterial( {color: l_colours[index], transparent:true, opacity:0.8} );
 
+		//point the cylinder along the X axis.
 		l_geo.rotateZ(Math.PI / 2);
-
 		if (index+1 < self.theta.length && self.a[index+1] != 0) {
+			//scale non-zero a values along the X axis.
 			l_geo.translate(0.5, 0, 0);
 			l_geo.scale(self.a[index+1], 1, 1);
 		}
