@@ -190,23 +190,28 @@ function init() {
 function animate() {
 	var angles = [],
 		target = ee_target.position.clone(),
-		ee_pos = new THREE.Vector3(...joints[5].transform.elements.slice(12, 15));
+		ee_pos = new THREE.Vector3(...joints[5].transform.elements.slice(12, 15)),
+		dist_to_target = Math.abs(ee_pos.clone().sub(target).length());
 	//joints[2].iterateIK(target, scene, render, joints[5]);
 	//return;
 
 
-	if (Math.abs(ee_pos.clone().sub(target).length()) > 0.25) {
+
+	if (dist_to_target > 0.5) {
 		joints.forEach(function(j) {
 			angles.push(j.iterateIK(target, scene, render, joints[5]));
 		});
 
+		var max_speed = 10,
+			//rotation_speed = (dist_to_target / 30) * max_speed,
+			rotation_speed = Math.log(dist_to_target);
+
+		rotation_speed = Math.max(rotation_speed, 3);
+
+		console.log(`max speed = ${max_speed}, rotation_speed = ${rotation_speed}`);
+
 		joints.forEach(function(j, i) {
-			j.theta += (angles[i]*2) * -1;
-			/*if (angles[i] > 0) {
-				j.theta -= 1.5;
-			} else {
-				j.theta += 1.5;
-			}*/
+			j.theta += (angles[i]*rotation_speed) * -1;
 		});
 
 		joints[0].apply_params();

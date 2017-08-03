@@ -156,19 +156,6 @@ function joint(d, a, alpha, theta) {
 
 	this.init();
 
-	this.get_ee_position = function() {
-		this.apply_params();
-		if (this.hasOwnProperty('child')) {
-			var c = this.child;
-			while (c.child) {
-				c = c.child;
-			}
-			return c.transform;
-		} else {
-			return this.transform;
-		}
-	}
-
 	this.iterateIK = function(target, scene, render, last) {
 		var joint_centre = new THREE.Vector3(...this.transform.elements.slice(12, 15));
 		var tip = new THREE.Vector3(...last.transform.elements.slice(12, 15));
@@ -188,7 +175,6 @@ function joint(d, a, alpha, theta) {
 		var tta = new THREE.ArrowHelper(to_target.clone().normalize(), tip, to_target.length(), colour);
 		var a = new THREE.ArrowHelper(new THREE.Vector3(...this.transform.elements.slice(8,11)).normalize(), new THREE.Vector3(0,0,0), 20, 0xffff00);
 		var mv = new THREE.ArrowHelper(movement_vector.clone().normalize(), tip, movement_vector.length(), 0x0000ff);
-		console.log('gradient=', gradient);
 		console.log('relative magnitude=', gradient/movement_vector.length());
 
 		scene.add(jc);
@@ -198,6 +184,8 @@ function joint(d, a, alpha, theta) {
 		scene.add(a);
 		scene.add(mv);
 		render();*/
+
+		console.log('gradient=', gradient);
 
 		return gradient;
 	}
