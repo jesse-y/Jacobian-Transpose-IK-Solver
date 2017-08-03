@@ -1,4 +1,5 @@
-function SceneCamera(camera, render_func) {
+function SceneCamera(camera, domElement) {
+	var scope = this;
 	//button code for mouse clicks. 
 	//IE8 returns 1, 4, 2 for left, middle and right buttons respectively.
 	var l_btn = 0;
@@ -84,7 +85,6 @@ function SceneCamera(camera, render_func) {
 		target.translateZ(distance);
 
 		set_camera_pos();
-		render_func();
 	}
 
 	//move the camera along the X and Y axes of the target. note the target is looking
@@ -103,7 +103,6 @@ function SceneCamera(camera, render_func) {
 		target.translateY(offset_y);
 
 		set_camera_pos();
-		render_func();
 	}
 
 	//orbit the camera around the target.
@@ -125,7 +124,6 @@ function SceneCamera(camera, render_func) {
 		if (phi < -180) phi = -180;
 
 		set_camera_pos();
-		render_func();
 	}
 
 	//zoom the camera by reducing the radius of the sphere upon which the camera sits.
@@ -140,7 +138,6 @@ function SceneCamera(camera, render_func) {
 
 			if (r < 0) r = 0;
 			set_camera_pos();
-			render_func();
 		}
 	}
 
@@ -156,6 +153,8 @@ function SceneCamera(camera, render_func) {
 
 		camera.lookAt(target.position);
 		target.lookAt(camera.position);
+
+		scope.dispatchEvent({type: 'change'});
 	}
 
 	//set the view to default values
@@ -172,17 +171,15 @@ function SceneCamera(camera, render_func) {
 		mouse[r_btn] = default_btn_state;
 
 		set_camera_pos();
-		render_func();
 	}
 
 	this.init = function() {
-		var viewport_elem = document.getElementById('viewport').childNodes[0];
-		viewport_elem.addEventListener('mousemove', mouse_move, false );
-		viewport_elem.addEventListener('mousedown', mouse_down, false );
-		viewport_elem.addEventListener('mouseup', mouse_up, false );
-		viewport_elem.addEventListener('wheel', zoom_camera, false);
+		domElement.addEventListener('mousemove', mouse_move, false );
+		domElement.addEventListener('mousedown', mouse_down, false );
+		domElement.addEventListener('mouseup', mouse_up, false );
+		domElement.addEventListener('wheel', zoom_camera, false);
 
-		viewport_elem.addEventListener('contextmenu', function(event) {
+		domElement.addEventListener('contextmenu', function(event) {
 			event.preventDefault();
 			return false;
 		}, false);
@@ -190,11 +187,12 @@ function SceneCamera(camera, render_func) {
 		window.input.bind('F', reset_view);
 
 		set_camera_pos();
-		render_func();
 	}
 
 	this.init();
 }
+
+SceneCamera.prototype = Object.create(THREE.EventDispatcher.prototype);
 
 (function () {
 	//mouse keycodes are different for different browsers
