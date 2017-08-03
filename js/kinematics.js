@@ -3,20 +3,28 @@ console.log('kinematics.js loaded');
 function KinematicChain(joints) {
 	var self = this;
 
+	//a, d, alpha and theta are arrays corresponding to the joint from base to tip.
 	this.a = [];
 	this.d = [];
 	this.alpha = [];
 	this.theta = [];
 
+	//base transform determines where the base of the entire robot sits
+	//in the workspace. j_transforms are individual world coordinates for
+	//each joint in the chain.
 	this.base_transform = new THREE.Matrix4();
 	this.j_transforms;
 
+	//three.js meshes corresponding to each joint and its corresponding link.
 	this.j_mesh = [];
 	this.l_mesh = [];
 
+	//joint colour is gray. link colours range from red to purple.
 	var l_colours = [0xff2121, 0xff96b21, 0xf7ff21, 0x4dff21, 0x2181ff, 0xb121ff],
 		j_colour = 0xb2b2b2;
 
+	//given current state of each a, d, theta and alpha array, determine
+	//what the end effector position is.
 	this.forward = function() {
 		this.j_transforms = [];
 		console.log('=================== FORWARD START ===================');
@@ -30,9 +38,12 @@ function KinematicChain(joints) {
 		console.log('=================== FORWARD FINISH ==================');
 	}
 
+	//given a Vector3 in world space, perform one iteration of the gradient
+	//descent IK solver. Each value is a gradient that determines which direction
+	//each joint should move.
 	this.iterateIK = function(target) {
 		var joint_centre, tip, to_tip, to_target, movement_vector, gradient;
-		var angles = [];
+		var gradients = [];
 		for (var i = 0; i < this.theta.length; i++) {
 			joint_centre = new THREE.Vector3(...this.j_transforms[i].elements.slice(12, 15));
 			tip = new THREE.Vector3(...this.j_transforms[this.theta.length-1].elements.slice(12, 15));
@@ -45,12 +56,17 @@ function KinematicChain(joints) {
 
 			console.log(`joint ${i}: gradient=${gradient}`);
 
-			angles.push(gradient);
+			gradients.push(gradient);
 		}
 
-		return angles;
+		return gradients;
 	}
 
+	//get a DH transformation matrix given the index of the joint in the
+	//kinematic chain. order of operations is important!
+	//the entire transformation is described in two screw displacements.
+	//one for the current joint, and another for the link connecting this
+	//joint to the next.
 	this.get_dh_matrix = function(index) {
 		var am = a_matrix(this.a[index]),
 			dm = d_matrix(this.d[index]),
@@ -126,6 +142,7 @@ function KinematicChain(joints) {
 		return mesh;
 	}
 
+	//the d matrix pushes the joint along its Z axis.
 	function d_matrix (val) {
 		var m = new THREE.Matrix4();
 		m.set(
@@ -137,6 +154,8 @@ function KinematicChain(joints) {
 		return m;
 	}
 
+	//the a matrix pushes the next joint along this joint's
+	//x axis.
 	function a_matrix (val) {
 		var m = new THREE.Matrix4();
 		m.set(
@@ -148,6 +167,8 @@ function KinematicChain(joints) {
 		return m;
 	}
 
+	//the alpha matrix refers to joint twist. it will rotate the
+	//next joint in the chain along this joint's x axis.
 	function alpha_matrix(val) {
 		var s = Math.sin(radians(val));
 		var c = Math.cos(radians(val));
@@ -162,6 +183,8 @@ function KinematicChain(joints) {
 		return m;
 	}
 
+	//the theta matrix refers to the joint's angle. this is often
+	//the parameter that is changed when moving the joint chain.
 	function theta_matrix(val) {
 		var s = Math.sin(radians(val));
 		var c = Math.cos(radians(val));
