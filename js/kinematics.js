@@ -235,20 +235,3 @@ function KinematicChain(joints) {
 		return (angle * Math.PI * 2 / 360);
 	}
 }
-
-/**
-		var gradients = [];
-		for (var i = 0; i < this.theta.length; i++) {
-			joint_centre = new THREE.Vector3(...this.j_transforms[i].elements.slice(12, 15));
-			tip = new THREE.Vector3(...this.j_transforms[this.theta.length-1].elements.slice(12, 15));
-
-			to_tip = tip.clone().sub(joint_centre);
-			to_target = target.clone().sub(tip);
-
-			movement_vector = to_tip.clone().cross(new THREE.Vector3(...this.j_transforms[i].elements.slice(8, 11))).normalize();
-			gradient = movement_vector.clone().dot(to_target.clone().normalize());
-
-			console.log(`joint ${i}: gradient=${gradient}`);
-
-			gradients.push(gradient);
-		}**/

@@ -81,6 +81,7 @@ function init() {
 	var ee_geo = new THREE.CylinderGeometry(1, 1, 2),
 		ee_mat = new THREE.MeshBasicMaterial({color:0xff0000, transparent:true,  opacity:0.5});
 
+	//modify ee target to align the cylinder along Z axis
 	ee_geo.rotateX(Math.PI / 2);
 	ee_geo.translate(0, 0, 1);
 
