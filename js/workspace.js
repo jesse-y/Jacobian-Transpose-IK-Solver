@@ -38,10 +38,56 @@ function init() {
 	manipulator = new THREE.TransformControls(camera, renderer.domElement);
 	manipulator.addEventListener('change', render);
 
+	//https://threejs.org/examples/misc_controls_transform.html
+	window.addEventListener( 'keydown', function ( event ) {
+		switch ( event.keyCode ) {
+			case 81: // Q
+				manipulator.setSpace( manipulator.space === "local" ? "world" : "local" );
+				break;
+			case 17: // Ctrl
+				manipulator.setTranslationSnap( 100 );
+				manipulator.setRotationSnap( THREE.Math.degToRad( 15 ) );
+				break;
+			case 87: // W
+				manipulator.setMode( "translate" );
+				break;
+			case 69: // E
+				manipulator.setMode( "rotate" );
+				break;
+			case 82: // R
+				manipulator.setMode( "scale" );
+				break;
+			case 187:
+			case 107: // +, =, num+
+				manipulator.setSize( manipulator.size + 0.1 );
+				break;
+			case 189:
+			case 109: // -, _, num-
+				manipulator.setSize( Math.max( manipulator.size - 0.1, 0.1 ) );
+				break;
+		}
+	});
+	window.addEventListener( 'keyup', function ( event ) {
+		switch ( event.keyCode ) {
+
+			case 17: // Ctrl
+				manipulator.setTranslationSnap( null );
+				manipulator.setRotationSnap( null );
+				break;
+		}
+	});
+
+	//create target position geometry
+	var ee_geo = new THREE.CylinderGeometry(1, 1, 2),
+		ee_mat = new THREE.MeshBasicMaterial({color:0xff0000, transparent:true,  opacity:0.5});
+
+	ee_geo.rotateX(Math.PI / 2);
+	ee_geo.translate(0, 0, 1);
+
 	//create end effector target
-	ee_target = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 2),
-							   new THREE.MeshBasicMaterial({color:0xff0000, transparent:true,  opacity:0.5}));
+	ee_target = new THREE.Mesh(ee_geo, ee_mat);
 	ee_target.position.set(8, 17, 0);
+	ee_target.rotation.set(Math.PI/2, 0, Math.PI);
 	manipulator.attach(ee_target);
 
 	scene.add(manipulator);
@@ -69,33 +115,43 @@ function init() {
 }
 
 function animate() {
-	var angles,
-		target = ee_target.position.clone(),
-		ee_pos = new THREE.Vector3(...chain.j_transforms[chain.a.length-1].elements.slice(12,15)),
-		dist_to_target = Math.abs(ee_pos.clone().sub(target).length());
+	var ee_pos = [...chain.j_transforms[chain.a.length-1].elements.slice(12,15)],
+		t_pos = [...ee_target.matrix.elements.slice(12,15)],
+		ee_eul = new THREE.Euler().setFromRotationMatrix(chain.j_transforms[chain.a.length-1]),
+		t_eul = ee_target.rotation.clone(),
+		dist_to_target = Math.abs(new THREE.Vector3(...t_pos).sub(new THREE.Vector3(...ee_pos)).length());
 
-	if (dist_to_target > 0.5) {
-		//determine the gradient for each joint
-		angles = chain.iterateIK(target);
+	var to_target_6dof = [
+		t_pos[0] - ee_pos[0],
+		t_pos[1] - ee_pos[1],
+		t_pos[2] - ee_pos[2],
+		rot_diff(t_eul.x, ee_eul.x),
+		rot_diff(t_eul.y, ee_eul.y),
+		rot_diff(t_eul.z, ee_eul.z)
+	];
 
-		//determine scaling factor for the speed at which the
-		//joint should move.
-		var rotation_speed = Math.log(dist_to_target);
-		rotation_speed = Math.max(rotation_speed, 1);
+	var angles = chain.iterateIK(to_target_6dof);
 
-		console.log(`rotation_speed = ${rotation_speed}, dist_to_target=${dist_to_target}`);
-
-		//modify the chain to move each joint down its gradient, and
-		//then recalculate the position of the chain's end effector.
-		for (var i = 0; i < chain.theta.length; i++) {
-			chain.theta[i] += (angles[i]*rotation_speed) * -1;
+	//apply angles
+	for (var i = 0; i < chain.theta.length; i++) {
+		if (i > 2 && Math.abs(angles[i]) < 0.5) {
+			if (angles[i] < 0) angles[i] = -0.5;
+			else angles[i] = 0.5
 		}
-
-		chain.forward();
+		chain.theta[i] += angles[i];
 	}
+
+	chain.forward();
 
 	render();
 	window.setTimeout(animate, 50);
+}
+
+function rot_diff(a1, a2) {
+	var diff = a1 - a2;
+	if (diff < -Math.PI) diff += 2*Math.PI;
+	if (diff > Math.PI) diff -= 2*Math.PI;
+	return THREE.Math.radToDeg(diff);
 }
 
 function render() {

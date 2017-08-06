@@ -43,24 +43,44 @@ function KinematicChain(joints) {
 	//descent IK solver. Each value is a gradient that determines which direction
 	//each joint should move.
 	this.iterateIK = function(target) {
-		var joint_centre, tip, to_tip, to_target, movement_vector, gradient;
-		var gradients = [];
+		var joint_centre, tip, to_tip, z_axis, 
+			jacobian_t = [],
+			angles = [0, 0, 0, 0, 0, 0];
+
+		//compute entries for the transposed jacobian
 		for (var i = 0; i < this.theta.length; i++) {
 			joint_centre = new THREE.Vector3(...this.j_transforms[i].elements.slice(12, 15));
 			tip = new THREE.Vector3(...this.j_transforms[this.theta.length-1].elements.slice(12, 15));
-
+			
 			to_tip = tip.clone().sub(joint_centre);
-			to_target = target.clone().sub(tip);
+			
+			z_axis = new THREE.Vector3(...this.j_transforms[i].elements.slice(8, 11)).normalize();
 
-			movement_vector = to_tip.clone().cross(new THREE.Vector3(...this.j_transforms[i].elements.slice(8, 11))).normalize();
-			gradient = movement_vector.clone().dot(to_target.clone().normalize());
+			mv = z_axis.clone().cross(to_tip);
 
-			console.log(`joint ${i}: gradient=${gradient}`);
-
-			gradients.push(gradient);
+			jacobian_t.push([mv.x, mv.y, mv.z, z_axis.x, z_axis.y, z_axis.z]);
 		}
 
-		return gradients;
+		//apply target velocity parameters to the jacobian through dot product
+		for (var ti = 0; ti < target.length; ti++) {
+			for (var ji = 0; ji < jacobian_t.length; ji++) {
+				angles[ti] += target[ji] * jacobian_t[ti][ji];
+			}
+		}
+
+		var scaling_factor = 1;
+
+		console.log('=================== JACOBIAN START ==================');
+		//apply the scaling factor
+		for (var i = 0; i < angles.length; i++) {
+			console.log(`joint ${i} angle = ${angles[i]}`);
+			angles[i] = radians(angles[i]);
+			angles[i] *= scaling_factor
+		}
+
+		console.log('=================== JACOBIAN FINISH =================');
+
+		return angles;
 	}
 
 	//get a DH transformation matrix given the index of the joint in the
@@ -125,6 +145,10 @@ function KinematicChain(joints) {
 		var mesh = new THREE.Mesh(j_geo, j_mat);
 		mesh.matrixAutoUpdate = false;
 
+		if (index == 5) {
+			mesh.add(new THREE.AxisHelper(10));	
+		}
+
 		return mesh;
 	}
 
@@ -134,7 +158,11 @@ function KinematicChain(joints) {
 
 		//point the cylinder along the X axis.
 		l_geo.rotateZ(Math.PI / 2);
-		if (index+1 < self.theta.length && self.a[index+1] != 0) {
+		if (index == 5) {
+			l_geo.rotateY(Math.PI / 2);
+			l_geo.scale(0.5, 0.5, 2);
+			l_geo.translate(0, 0, 1);
+		} else if (index+1 < self.theta.length && self.a[index+1] != 0) {
 			//scale non-zero a values along the X axis.
 			l_geo.translate(0.5, 0, 0);
 			l_geo.scale(self.a[index+1], 1, 1);
@@ -207,3 +235,20 @@ function KinematicChain(joints) {
 		return (angle * Math.PI * 2 / 360);
 	}
 }
+
+/**
+		var gradients = [];
+		for (var i = 0; i < this.theta.length; i++) {
+			joint_centre = new THREE.Vector3(...this.j_transforms[i].elements.slice(12, 15));
+			tip = new THREE.Vector3(...this.j_transforms[this.theta.length-1].elements.slice(12, 15));
+
+			to_tip = tip.clone().sub(joint_centre);
+			to_target = target.clone().sub(tip);
+
+			movement_vector = to_tip.clone().cross(new THREE.Vector3(...this.j_transforms[i].elements.slice(8, 11))).normalize();
+			gradient = movement_vector.clone().dot(to_target.clone().normalize());
+
+			console.log(`joint ${i}: gradient=${gradient}`);
+
+			gradients.push(gradient);
+		}**/
