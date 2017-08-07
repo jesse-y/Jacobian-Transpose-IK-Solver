@@ -3,9 +3,29 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Kinematics Demo</title>
+		<style>
+			body {
+				margin: 0px;
+				font-family:Monospace;
+				text-align: center;
+				font-size: 15px;
+				line-height: 30px;
+				overflow: hidden;
+			}
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 15px;
+			}
+		</style>
 	</head>
 
 	<body>
+		<div id="info">
+		'W' translate | 'E' rotate | 'Q' toggle world/local | 'Ctrl' snap to grid
+		<br>
+		'Alt' [press] camera controls | 'LMB' orbit | 'MMB' pan | 'RMB' dolly forward/backward | 'Mouse Wheel' zoom
+		</div>
 		<script src="js/three.min.js"></script>
 		<script src="js/TransformControls.js"></script>
 		<script src="js/input.js"></script>

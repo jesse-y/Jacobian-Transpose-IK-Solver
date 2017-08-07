@@ -32,6 +32,7 @@ function SceneCamera(camera, domElement) {
 	mouse[r_btn] = default_btn_state;
 
 	function mouse_down(event) {
+		//save the state of the camera the mouse button is pressed
 		event.preventDefault();
 		set_mouse(event, true);
 
@@ -49,6 +50,8 @@ function SceneCamera(camera, domElement) {
 	}
 
 	function mouse_move(event) {
+		//dolly, orbit and pan the camera based upon the last position and
+		//state of the camera when the left mouse button was last pressed.
 		event.preventDefault();
 		var btn = event.button;
 

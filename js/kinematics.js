@@ -43,9 +43,12 @@ function KinematicChain(joints) {
 	//descent IK solver. Each value is a gradient that determines which direction
 	//each joint should move.
 	this.iterateIK = function(target) {
-		var joint_centre, tip, to_tip, z_axis, 
-			jacobian_t = [],
+		var joint_centre, tip, to_tip, z_axis,
+			jacobian_t = [], jacobian = [];
 			angles = [0, 0, 0, 0, 0, 0];
+
+		//arrays used to produce jacobian matrix
+		var mvx = [], mvy = [], mvz = [], zax = [], zay = [], zaz = [];
 
 		//compute entries for the transposed jacobian
 		for (var i = 0; i < this.theta.length; i++) {
@@ -58,24 +61,33 @@ function KinematicChain(joints) {
 
 			mv = z_axis.clone().cross(to_tip);
 
+			//add jacobian matrix array entries
+			mvx.push(mv.x);
+			mvy.push(mv.y);
+			mvz.push(mv.z);
+			zax.push(z_axis.x);
+			zay.push(z_axis.y);
+			zaz.push(z_axis.z);
+			//add jacobian transpose entries
 			jacobian_t.push([mv.x, mv.y, mv.z, z_axis.x, z_axis.y, z_axis.z]);
 		}
 
-		//apply target velocity parameters to the jacobian through dot product
-		for (var ti = 0; ti < target.length; ti++) {
-			for (var ji = 0; ji < jacobian_t.length; ji++) {
-				angles[ti] += target[ji] * jacobian_t[ti][ji];
-			}
-		}
+		//produce jacobian matrix. although it isn't used currently, 
+		//it can be used to help produce a reasonable scaling factor, alpha.
+		jacobian = [mvx, mvy, mvz, zax, zay, zaz];
 
-		var scaling_factor = 1;
+		//apply target velocity parameters to the jacobian through dot product
+		//theta_vector = J_transpose . tip_to_target_vector
+		angles = dot(jacobian_t, target);
+
+		//determine scaling factor alpha
+		var alpha = 0.05;
 
 		console.log('=================== JACOBIAN START ==================');
 		//apply the scaling factor
 		for (var i = 0; i < angles.length; i++) {
 			console.log(`joint ${i} angle = ${angles[i]}`);
-			angles[i] = radians(angles[i]);
-			angles[i] *= scaling_factor
+			angles[i] *= alpha;
 		}
 
 		console.log('=================== JACOBIAN FINISH =================');
@@ -127,6 +139,67 @@ function KinematicChain(joints) {
 
 		//populate the transforms array for this joint angle config
 		self.forward();
+	}
+
+	function dot(a, b) {
+		var n, m, p;
+
+		n = a.length;
+		(a[0].constructor === Array) ? m = a[0].length : m = 1;
+		(b[0].constructor === Array) ? p = b[0].length : p = 1;
+
+		if (b[0].constructor === Array && b.length != m) {
+			console.warn('KinematicChain>dot: matrix B is not a 2D matrix with cols equal to the rows of A');
+			return;
+		}
+
+		var result;
+
+		if (a[0].constructor !== Array && b[0].constructor !== Array) {
+			//dot product of two 1D vectors
+			result = 0;
+			for (var i = 0; i < a.length; a++) {
+				result += a[i] * b[i];
+			}
+			return result;
+		} else if (a[0].constructor === Array && b[0].constructor !== Array) {
+			//dot product a = 2D matrix with b = 1D vector
+			result = [];
+			for (var i = 0; i < b.length; i++) {
+				result.push(0);
+			}
+
+			for (var i = 0; i < a.length; i++) {
+				for (var j = 0; j < b.length; j++) {
+					result[i] += b[j] * a[i][j];
+				}
+			}
+			return result;
+		} else {
+			//dot product a and b are 2D matrices
+			result = zeroes(n, p);
+
+			for (var i = 0; i < n; i++) {
+				for (var j = 0; j < p; j++) {
+					for (var k = 0; k < m; k++) {
+						result[i][j] += a[i][k] * b[k][j];
+					}
+				}
+			}
+
+			return result;
+		}
+	}
+
+	function zeroes(rows, cols) {
+		var array = [], row = [];
+		for (var i = 0; i < rows; i++) {
+			row.push(0);
+		}
+		for (var i = 0; i < cols; i++) {
+			array.push(row.slice());
+		}
+		return array;
 	}
 
 	function make_j_mesh(index) {

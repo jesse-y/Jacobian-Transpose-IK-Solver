@@ -27,7 +27,6 @@ function init() {
 	renderer.setClearColor(0xf0f0f0);
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(window.innerWidth, window.innerHeight);
-	renderer.domElement.style.display = 'block';
 	document.body.appendChild(renderer.domElement);
 
 	//bind input controller
@@ -36,8 +35,10 @@ function init() {
 
 	//create manipulator object
 	manipulator = new THREE.TransformControls(camera, renderer.domElement);
+	manipulator.space = 'local';
 	manipulator.addEventListener('change', render);
 
+	//transform controls sourced from THREE.js examples
 	//https://threejs.org/examples/misc_controls_transform.html
 	window.addEventListener( 'keydown', function ( event ) {
 		switch ( event.keyCode ) {
@@ -45,7 +46,7 @@ function init() {
 				manipulator.setSpace( manipulator.space === "local" ? "world" : "local" );
 				break;
 			case 17: // Ctrl
-				manipulator.setTranslationSnap( 100 );
+				manipulator.setTranslationSnap( 5 );
 				manipulator.setRotationSnap( THREE.Math.degToRad( 15 ) );
 				break;
 			case 87: // W
@@ -53,17 +54,6 @@ function init() {
 				break;
 			case 69: // E
 				manipulator.setMode( "rotate" );
-				break;
-			case 82: // R
-				manipulator.setMode( "scale" );
-				break;
-			case 187:
-			case 107: // +, =, num+
-				manipulator.setSize( manipulator.size + 0.1 );
-				break;
-			case 189:
-			case 109: // -, _, num-
-				manipulator.setSize( Math.max( manipulator.size - 0.1, 0.1 ) );
 				break;
 		}
 	});
@@ -81,11 +71,11 @@ function init() {
 	var ee_geo = new THREE.CylinderGeometry(1, 1, 2),
 		ee_mat = new THREE.MeshBasicMaterial({color:0xff0000, transparent:true,  opacity:0.5});
 
-	//modify ee target to align the cylinder along Z axis
+	//modify ee_target to align the cylinder along Z axis
 	ee_geo.rotateX(Math.PI / 2);
 	ee_geo.translate(0, 0, 1);
 
-	//create end effector target
+	//create end effector target and starting position/orientation
 	ee_target = new THREE.Mesh(ee_geo, ee_mat);
 	ee_target.position.set(8, 17, 0);
 	ee_target.rotation.set(Math.PI/2, 0, Math.PI);
@@ -113,9 +103,14 @@ function init() {
 
 	//handle resizing
 	window.addEventListener('resize', on_resize, false);
+
+	//help text
 }
 
 function animate() {
+	//calculate a vector from the end effector to the target.
+	//the vector is a 1D vector with 6 values in two groups:
+	//[position == p, orientation == o] => [p.x, p.y, p.z, o.x, o.y, o.z]
 	var ee_pos = [...chain.j_transforms[chain.a.length-1].elements.slice(12,15)],
 		t_pos = [...ee_target.matrix.elements.slice(12,15)],
 		ee_eul = new THREE.Euler().setFromRotationMatrix(chain.j_transforms[chain.a.length-1]),
@@ -135,10 +130,6 @@ function animate() {
 
 	//apply angles
 	for (var i = 0; i < chain.theta.length; i++) {
-		if (i > 2 && Math.abs(angles[i]) < 0.5) {
-			if (angles[i] < 0) angles[i] = -0.5;
-			else angles[i] = 0.5
-		}
 		chain.theta[i] += angles[i];
 	}
 
