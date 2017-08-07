@@ -44,8 +44,7 @@ function KinematicChain(joints) {
 	//each joint should move.
 	this.iterateIK = function(target) {
 		var joint_centre, tip, to_tip, z_axis,
-			jacobian_t = [], jacobian = [];
-			angles = [0, 0, 0, 0, 0, 0];
+			jacobian_t = [], jacobian = [], angles;
 
 		//arrays used to produce jacobian matrix
 		var mvx = [], mvy = [], mvz = [], zax = [], zay = [], zaz = [];
