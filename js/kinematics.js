@@ -28,15 +28,15 @@ function KinematicChain(joints) {
 	//joint, and the base transform is sucessively multiplied up the chain.
 	this.forward = function() {
 		this.j_transforms = [];
-		console.log('=================== FORWARD START ===================');
+		//console.log('=================== FORWARD START ===================');
 		var transform = this.base_transform.clone();
 		for (var i = 0; i < joints.length; i++) {
-			console.log(`joint ${i}: [d=${this.d[i]}, a=${this.a[i]}, alpha=${this.alpha[i]}, theta=${this.theta[i]}]`);
+			//console.log(`joint ${i}: [d=${this.d[i]}, a=${this.a[i]}, alpha=${this.alpha[i]}, theta=${this.theta[i]}]`);
 			this.j_transforms[i] = transform.multiply(this.get_dh_matrix(i)).clone();
 			this.j_mesh[i].matrix = this.j_transforms[i].clone();
 			this.l_mesh[i].matrix = this.j_transforms[i].clone();
 		}
-		console.log('=================== FORWARD FINISH ==================');
+		//console.log('=================== FORWARD FINISH ==================');
 	}
 
 	//given a Vector3 in world space, perform one iteration of the gradient
@@ -83,14 +83,13 @@ function KinematicChain(joints) {
 		//determine scaling factor alpha
 		var alpha = 0.05;
 
-		console.log('=================== JACOBIAN START ==================');
+		//console.log('=================== JACOBIAN START ==================');
 		//apply the scaling factor
 		for (var i = 0; i < angles.length; i++) {
-			console.log(`joint ${i} angle = ${angles[i]}`);
+			//console.log(`joint ${i} angle = ${angles[i]}`);
 			angles[i] *= alpha;
 		}
-
-		console.log('=================== JACOBIAN FINISH =================');
+		//console.log('=================== JACOBIAN FINISH =================');
 
 		return angles;
 	}

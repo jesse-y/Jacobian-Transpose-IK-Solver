@@ -4,7 +4,8 @@ document.body.style.margin = '0px';
 
 var camera, scene, renderer, 
 	camera_controls, manipulator,
-	chain, ee_target;
+	chain, ee_target,
+	state_div;
 
 init();
 animate();
@@ -104,7 +105,7 @@ function init() {
 	//handle resizing
 	window.addEventListener('resize', on_resize, false);
 
-	//help text
+	state_div = document.getElementById('robot_state');
 }
 
 function animate() {
@@ -126,12 +127,23 @@ function animate() {
 		rot_diff(t_eul.z, ee_eul.z)
 	];
 
-	var angles = chain.iterateIK(to_target_6dof);
-
+	var angles = chain.iterateIK(to_target_6dof),
+		debug_text = [];
 	//apply angles
 	for (var i = 0; i < chain.theta.length; i++) {
+		debug_text.push(`joint ${i}: [
+			d=${ pad_left(chain.d[i].toFixed(0), 3) }, 
+			a=${ pad_left(chain.a[i].toFixed(0), 3) }, 
+			alpha=${ pad_left(chain.alpha[i].toFixed(0), 4) }, 
+			theta=${ pad_left(chain.theta[i].toFixed(2), 8) }], 
+			J=${ pad_left(angles[i].toFixed(2), 6)}
+		`);
+
 		chain.theta[i] += angles[i];
 	}
+
+	//display internal state variables
+	state_div.innerHTML = debug_text.join('<br>') + '<br>';
 
 	chain.forward();
 
@@ -144,6 +156,16 @@ function rot_diff(a1, a2) {
 	if (diff < -Math.PI) diff += 2*Math.PI;
 	if (diff > Math.PI) diff -= 2*Math.PI;
 	return THREE.Math.radToDeg(diff);
+}
+
+function pad_left(text, length) {
+	var diff = length - text.length;
+	if (diff > 0) {
+		for (var i = 0; i < diff; i++) {
+			text = '&nbsp;'+text;
+		}
+	}
+	return text;
 }
 
 function render() {

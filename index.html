@@ -17,6 +17,12 @@
 				top: 0px; width: 100%;
 				padding: 15px;
 			}
+			#robot_state {
+				position: absolute;
+				top:70%;
+				left:5%;
+				padding: 15px;
+			}
 		</style>
 	</head>
 
@@ -25,6 +31,8 @@
 		'W' translate | 'E' rotate | 'Q' toggle world/local | 'Ctrl' snap to grid
 		<br>
 		'Alt' [press] camera controls | 'LMB' orbit | 'MMB' pan | 'RMB' dolly forward/backward | 'Mouse Wheel' zoom
+		</div>
+		<div id="robot_state">
 		</div>
 		<script src="js/three.min.js"></script>
 		<script src="js/TransformControls.js"></script>
